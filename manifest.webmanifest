@@ -1,0 +1,17 @@
+{
+  "name": "Training Planner",
+  "short_name": "TrainingPlanner",
+  "description": "Calendario multi-deporte con Garmin demo, perfil físico, vista atleta/mister e IA semanal.",
+  "start_url": "./app.html",
+  "display": "standalone",
+  "background_color": "#f7f9fc",
+  "theme_color": "#f7f9fc",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
