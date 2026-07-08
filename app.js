@@ -48,6 +48,7 @@ const DEFAULT_STATE = {
   role: 'athlete',
   selectedDay: 3,
   calendarMode: 'month',
+  page: 'dashboard',
   editingWorkoutId: null,
   selectedAthleteId: 'k',
   athletes: [
@@ -86,6 +87,7 @@ function loadState(){
     merged.feedback = { ...structuredClone(DEFAULT_STATE.feedback), ...(loaded.feedback || {}) };
     merged.lastAiPlan = loaded.lastAiPlan || [];
     merged.calendarMode = loaded.calendarMode || 'month';
+    merged.page = loaded.page || 'dashboard';
     return merged;
   }
   catch { return structuredClone(DEFAULT_STATE); }
@@ -111,6 +113,24 @@ function feedbackKey(day = state.selectedDay){ return `${currentAthlete().id}-${
 function selectedFeedback(){ return state.feedback?.[feedbackKey()] || { rpe: 5, fatigue: currentAthlete().fatigue || 5, sleep: 7, pain: 'No', comment: '' }; }
 function escapeHtml(v){ return String(v ?? '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 
+
+function renderAppNav(){
+  const items = [
+    ['dashboard','Dashboard'],
+    ['profile','Perfil'],
+    ['stats','Estadísticas'],
+    ['analysis','Garmin / análisis'],
+  ];
+  return `<nav class="app-nav">${items.map(([id,label])=>`<button class="nav-item ${state.page===id?'active':''}" data-page="${id}">${label}</button>`).join('')}</nav>`;
+}
+
+function renderCurrentPage(athlete){
+  if(state.page === 'profile') return renderProfilePage(athlete);
+  if(state.page === 'stats') return renderStatsPage(athlete);
+  if(state.page === 'analysis') return renderAnalysisPage(athlete);
+  return state.role === 'coach' ? renderCoachDashboard(athlete) : renderAthleteDashboard(athlete);
+}
+
 function render(){
   if(!state.session) return renderLogin();
   const athlete = currentAthlete();
@@ -124,7 +144,8 @@ function render(){
         <button class="btn danger" id="logout">Salir</button>
       </div>
     </header>
-    ${state.role === 'coach' ? renderCoach(athlete) : renderAthlete(athlete)}
+    ${renderAppNav()}
+    ${renderCurrentPage(athlete)}
   `;
   bindCommon();
 }
@@ -133,7 +154,7 @@ function renderLogin(){
   app.innerHTML = `
     <section class="login-wrap">
       <div class="login-card">
-        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v1.5 · login local demo</span></div></div>
+        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v1.6 · login local demo</span></div></div>
         <h1 style="margin-top:22px">Entrena con contexto.</h1>
         <p class="lead">Calendario, perfil físico, Garmin demo, vista atleta, vista mister y planificación semanal asistida por IA.</p>
         <form class="form" id="loginForm">
@@ -152,33 +173,26 @@ function renderLogin(){
   });
 }
 
-function renderAthlete(athlete){
+function renderAthleteDashboard(athlete){
   return `
     <section class="grid" style="margin-bottom:18px">
       <h1>Hola, ${escapeHtml(athlete.name)}.</h1>
-      <p class="lead">Tu semana se ajusta con tu perfil físico, tus objetivos y lo que Garmin diga que has hecho realmente.</p>
+      <p class="lead">Dashboard limpio: calendario, microciclo y lo que toca hoy. Lo demás vive en su sección, como debe ser.</p>
     </section>
     <section class="main-grid">
       <div class="grid">
         ${renderWeekFocus()}
         ${renderMicrocycle()}
-        ${renderCoachAlerts()}
         ${renderCalendar()}
-        ${renderProfile(athlete)}
       </div>
       <aside class="grid">
         ${renderTodayPanel()}
         ${renderSelectedDay()}
-        ${renderFeedbackForm()}
-        ${renderWeeklyHistory()}
-        ${renderMetrics()}
-        ${renderZones(athlete)}
-        ${renderGarminAnalysis(athlete)}
       </aside>
     </section>`;
 }
 
-function renderCoach(athlete){
+function renderCoachDashboard(athlete){
   return `
     <section class="main-grid">
       <div class="grid">
@@ -194,16 +208,25 @@ function renderCoach(athlete){
         ${renderCalendar()}
       </div>
       <aside class="grid">
-        ${renderProfile(athlete)}
+        ${renderTodayPanel()}
+        ${renderSelectedDay()}
         ${renderWorkoutForm()}
-        ${renderFeedbackForm(true)}
         ${renderAiPlan()}
-        ${renderWeeklyHistory(true)}
-        ${renderGarminAnalysis(athlete, true)}
       </aside>
     </section>`;
 }
 
+function renderProfilePage(athlete){
+  return `<section class="main-grid"><div class="grid">${renderProfile(athlete)}${renderZones(athlete)}</div><aside class="grid">${renderFeedbackForm(state.role==='coach')}${renderTodayPanel()}</aside></section>`;
+}
+
+function renderStatsPage(athlete){
+  return `<section class="main-grid"><div class="grid">${renderMetrics()}${renderWeeklyHistory(state.role==='coach')}</div><aside class="grid">${renderCoachAlerts()}${renderAiPlan()}</aside></section>`;
+}
+
+function renderAnalysisPage(athlete){
+  return `<section class="main-grid"><div class="grid">${renderGarminAnalysis(athlete, state.role==='coach')}</div><aside class="grid">${renderWeeklyHistory(state.role==='coach')} ${renderFeedbackForm(true)}</aside></section>`;
+}
 
 function selectedDayWorkload(){
   return workoutsFor(state.selectedDay).reduce((sum,w)=>sum+Number(w.duration||0),0);
@@ -394,9 +417,10 @@ function renderGarminAnalysis(a, coach=false){
 
 function bindCommon(){
   document.querySelectorAll('[data-role]').forEach(b => b.addEventListener('click', () => { state.role=b.dataset.role; save(); render(); }));
+  document.querySelectorAll('[data-page]').forEach(b => b.addEventListener('click', () => { state.page=b.dataset.page; save(); render(); }));
   document.querySelectorAll('[data-calendar-mode]').forEach(b => b.addEventListener('click', () => { state.calendarMode=b.dataset.calendarMode; save(); render(); }));
   document.querySelector('#logout')?.addEventListener('click',()=>{ state.session=null; save(); renderLogin(); });
-  document.querySelector('#resetDemo')?.addEventListener('click',()=>{ localStorage.removeItem(STORE_KEY); state=structuredClone(DEFAULT_STATE); state.session={email:'k@demo.local',loginAt:new Date().toISOString()}; save(); render(); });
+  document.querySelector('#resetDemo')?.addEventListener('click',()=>{ localStorage.removeItem(STORE_KEY); state=structuredClone(DEFAULT_STATE); state.session={email:'k@demo.local',loginAt:new Date().toISOString()}; state.page='dashboard'; save(); render(); });
   document.querySelectorAll('[data-day]').forEach(d => d.addEventListener('click', e => { if(e.target.closest('.workout')) return; state.selectedDay=Number(d.dataset.day); save(); render(); }));
   document.querySelectorAll('[data-athlete]').forEach(b => b.addEventListener('click',()=>{ state.selectedAthleteId=b.dataset.athlete; save(); render(); }));
   document.querySelector('#profileForm')?.addEventListener('submit', e => { e.preventDefault(); const a=currentAthlete(); const f=new FormData(e.currentTarget); ['sport','level','objective','availability','pain'].forEach(k=>a[k]=f.get(k)); ['ftp','maxHr','thresholdHr','weeklyHours','fatigue'].forEach(k=>a[k]=Number(f.get(k)||0)); save(); render(); });
@@ -418,7 +442,7 @@ function bindCommon(){
   document.querySelector('#cancelEdit')?.addEventListener('click',()=>{ state.editingWorkoutId=null; save(); render(); });
   document.querySelectorAll('[data-template]').forEach(b => b.addEventListener('click', () => { const [sport,idx]=b.dataset.template.split(':'); const t=(TEMPLATES[sport]||[])[Number(idx)]; if(!t) return; state.workouts.push({id:uid(),athleteId:currentAthlete().id,day:state.selectedDay,sport,title:t.title,duration:t.duration,intensity:t.intensity,status:'planned',source:'template'}); save(); render(); }));
   document.querySelectorAll('[data-status]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const w=state.workouts.find(x=>x.id===b.dataset.id); if(w) w.status=b.dataset.status; save(); render(); }));
-  document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.editingWorkoutId=b.dataset.edit; state.role='coach'; save(); render(); }));
+  document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.editingWorkoutId=b.dataset.edit; state.role='coach'; state.page='dashboard'; save(); render(); }));
   document.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.workouts=state.workouts.filter(w=>w.id!==b.dataset.delete); save(); render(); }));
   document.querySelector('#generateWeek')?.addEventListener('click', generateWeekDemo);
   document.querySelector('#duplicateWeek')?.addEventListener('click', duplicateCurrentWeek);

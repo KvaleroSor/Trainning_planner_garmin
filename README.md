@@ -161,7 +161,7 @@ Objetivo:
 - resumen semanal,
 - idea de Garmin conectado/simulado.
 
-## PWA funcional v1.5
+## PWA funcional v1.6
 
 ```text
 app.html
@@ -200,7 +200,9 @@ Incluye:
 - microciclo semanal visual con días de descanso/base/intensidad/carga alta,
 - plantillas por deporte ampliadas: ciclismo, running, natación, fuerza, triatlón y movilidad,
 - análisis Garmin visual con semáforo de cumplimiento plan vs real, diferencia de minutos y lectura atleta/mister,
-- refinado visual a paleta pastel suave, menos neón y más premium.
+- refinado visual a paleta pastel suave, menos neón y más premium,
+- menú interno para separar Dashboard, Perfil, Estadísticas y Garmin/Análisis,
+- dashboard principal reducido a calendario, microciclo, panel Hoy y gestión del día.
 
 Notas:
 
