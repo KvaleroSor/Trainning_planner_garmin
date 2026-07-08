@@ -161,7 +161,7 @@ Objetivo:
 - resumen semanal,
 - idea de Garmin conectado/simulado.
 
-## PWA funcional v1.3
+## PWA funcional v1.4
 
 ```text
 app.html
@@ -193,7 +193,10 @@ Incluye:
 - panel de plan IA con explicación sesión a sesión,
 - edición de entrenamientos existentes desde el panel Mister,
 - plantillas rápidas por deporte,
-- historial semanal agrupado por deporte con lectura diferente para atleta/mister.
+- historial semanal agrupado por deporte con lectura diferente para atleta/mister,
+- panel “Hoy” para el atleta con sesión principal, carga del día, RPE, sueño y fatiga,
+- alertas para mister/admin: fatiga alta, sueño bajo, entrenos saltados, sobrecumplimiento y bajo cumplimiento,
+- acción “Duplicar semana” para copiar entrenos planificados a la semana siguiente.
 
 Notas:
 

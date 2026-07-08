@@ -124,7 +124,7 @@ function renderLogin(){
   app.innerHTML = `
     <section class="login-wrap">
       <div class="login-card">
-        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v1.3 · login local demo</span></div></div>
+        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v1.4 · login local demo</span></div></div>
         <h1 style="margin-top:22px">Entrena con contexto.</h1>
         <p class="lead">Calendario, perfil físico, Garmin demo, vista atleta, vista mister y planificación semanal asistida por IA.</p>
         <form class="form" id="loginForm">
@@ -152,10 +152,12 @@ function renderAthlete(athlete){
     <section class="main-grid">
       <div class="grid">
         ${renderWeekFocus()}
+        ${renderCoachAlerts()}
         ${renderCalendar()}
         ${renderProfile(athlete)}
       </div>
       <aside class="grid">
+        ${renderTodayPanel()}
         ${renderSelectedDay()}
         ${renderFeedbackForm()}
         ${renderWeeklyHistory()}
@@ -171,12 +173,13 @@ function renderCoach(athlete){
     <section class="main-grid">
       <div class="grid">
         <section class="panel">
-          <div class="panel-title"><h2>Atletas</h2><button class="btn primary" id="generateWeek">Generar semana IA demo</button></div>
+          <div class="panel-title"><h2>Atletas</h2><div class="actions"><button class="btn" id="duplicateWeek">Duplicar semana</button><button class="btn primary" id="generateWeek">Generar semana IA demo</button></div></div>
           <div class="coach-list">
             ${state.athletes.map(a => `<button class="athlete-card" data-athlete="${a.id}"><span><b>${escapeHtml(a.name)}</b><br><span class="muted">${SPORTS[a.sport]?.label || a.sport} · ${escapeHtml(a.objective)}</span></span><span class="pill">${a.weeklyHours}h/sem</span></button>`).join('')}
           </div>
         </section>
         ${renderWeekFocus()}
+        ${renderCoachAlerts()}
         ${renderCalendar()}
       </div>
       <aside class="grid">
@@ -188,6 +191,40 @@ function renderCoach(athlete){
         ${renderGarminAnalysis(athlete, true)}
       </aside>
     </section>`;
+}
+
+
+function selectedDayWorkload(){
+  return workoutsFor(state.selectedDay).reduce((sum,w)=>sum+Number(w.duration||0),0);
+}
+
+function renderTodayPanel(){
+  const list = workoutsFor(state.selectedDay);
+  const next = list.find(w => w.status === 'planned') || list[0];
+  const f = selectedFeedback();
+  const title = next ? escapeHtml(next.title) : 'Descanso / movilidad opcional';
+  const guidance = next
+    ? `${SPORTS[next.sport]?.label || next.sport} · ${next.duration} min · ${escapeHtml(next.intensity)}. Objetivo: cumplir sin perseguir héroes.`
+    : 'No hay sesión planificada. Si hay fatiga, descansa. Si estás fresco, movilidad ligera.';
+  return `<section class="today-card"><span class="small">Panel Hoy · día ${state.selectedDay}</span><h2>${title}</h2><p>${guidance}</p><div class="today-strip"><span>RPE ${f.rpe}</span><span>Fatiga ${f.fatigue}/10</span><span>Sueño ${f.sleep}/10</span><span>${selectedDayWorkload()} min</span></div></section>`;
+}
+
+function coachAlerts(){
+  const s = weekSummary();
+  const f = selectedFeedback();
+  const alerts=[];
+  if(Number(f.fatigue) >= 8 || currentAthlete().fatigue >= 8) alerts.push({level:'danger', title:'Fatiga alta', body:'Conviene bajar intensidad o meter descarga.'});
+  if(Number(f.sleep) <= 5) alerts.push({level:'warn', title:'Sueño bajo', body:'Evitar sesiones de alta intensidad hasta recuperar.'});
+  if(s.skippedCount > 0) alerts.push({level:'warn', title:'Entrenos saltados', body:`${s.skippedCount} sesión(es) saltadas. Revisar adherencia antes de subir carga.`});
+  if(s.consistency > 115) alerts.push({level:'warn', title:'Sobrecumplimiento', body:'Está haciendo más de lo previsto. Bien para Strava, delicado para la semana siguiente.'});
+  if(s.consistency < 60 && s.planned > 0) alerts.push({level:'info', title:'Cumplimiento bajo', body:'Mejor reajustar calendario que acumular deuda deportiva imaginaria.'});
+  return alerts;
+}
+
+function renderCoachAlerts(){
+  if(state.role !== 'coach') return '';
+  const alerts = coachAlerts();
+  return `<section class="panel"><div class="panel-title"><h2>Alertas mister</h2><span class="pill">${alerts.length || 'OK'}</span></div>${alerts.length ? alerts.map(a=>`<div class="alert ${a.level}"><b>${escapeHtml(a.title)}</b><span>${escapeHtml(a.body)}</span></div>`).join('') : '<p class="lead">Sin alertas relevantes. La semana está razonablemente controlada.</p>'}</section>`;
 }
 
 function renderWeekFocus(){
@@ -344,6 +381,25 @@ function bindCommon(){
   document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.editingWorkoutId=b.dataset.edit; state.role='coach'; save(); render(); }));
   document.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.workouts=state.workouts.filter(w=>w.id!==b.dataset.delete); save(); render(); }));
   document.querySelector('#generateWeek')?.addEventListener('click', generateWeekDemo);
+  document.querySelector('#duplicateWeek')?.addEventListener('click', duplicateCurrentWeek);
+}
+
+
+function duplicateCurrentWeek(){
+  const a=currentAthlete();
+  const source = state.workouts.filter(w => w.athleteId===a.id && w.status !== 'imported' && w.day <= 7);
+  if(!source.length) return;
+  source.forEach(w => state.workouts.push({
+    ...w,
+    id: uid(),
+    day: Math.min(31, Number(w.day)+7),
+    title: `Copia · ${w.title}`,
+    status: 'planned',
+    source: 'duplicated'
+  }));
+  state.selectedDay = Math.min(31, Number(source[0].day)+7);
+  state.calendarMode = 'week';
+  save(); render();
 }
 
 function generateWeekDemo(){
