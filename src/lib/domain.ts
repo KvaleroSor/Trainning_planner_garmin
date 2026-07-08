@@ -56,3 +56,57 @@ export function summarizeWeeklyLoad(workouts: WorkoutSummaryInput[]): WeeklyLoad
     consistency: plannedMinutes === 0 ? 0 : Math.round((completedMinutes / plannedMinutes) * 100),
   };
 }
+
+export type RosterWorkoutInput = {
+  id: string;
+  date: Date;
+  title: string;
+  status: string;
+  plannedMinutes: number;
+  sport: string;
+};
+
+export type RosterAthleteInput = {
+  id: string;
+  displayName: string;
+  primarySport: string;
+  objective: string;
+  weeklyHours: number;
+  user?: { name?: string | null; email?: string | null } | null;
+  workouts?: RosterWorkoutInput[];
+};
+
+export type CoachRosterAthlete = {
+  id: string;
+  name: string;
+  sport: string;
+  objective: string;
+  weeklyHours: number;
+  latestWorkout: string | null;
+  nextWorkout: string | null;
+};
+
+export function buildCoachRoster(athletes: RosterAthleteInput[]): CoachRosterAthlete[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return athletes
+    .map(a => {
+      const workouts = a.workouts ?? [];
+      const planned = workouts
+        .filter(w => w.status === 'PLANNED')
+        .sort((w1, w2) => w1.date.getTime() - w2.date.getTime());
+      const next = planned.find(w => w.date.getTime() >= today.getTime()) ?? planned[0] ?? null;
+      const latest = [...workouts].reverse().find(w => w.status === 'COMPLETED' || w.status === 'IMPORTED');
+      return {
+        id: a.id,
+        name: a.displayName || a.user?.name || 'Atleta',
+        sport: a.primarySport,
+        objective: a.objective,
+        weeklyHours: a.weeklyHours,
+        latestWorkout: latest ? `${latest.title} · ${latest.plannedMinutes} min` : null,
+        nextWorkout: next ? `${next.title} · ${next.plannedMinutes} min` : null,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
