@@ -161,7 +161,7 @@ function renderLogin(){
   app.innerHTML = `
     <section class="login-wrap">
       <div class="login-card">
-        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v2.1 · login local demo</span></div></div>
+        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v2.2 · login local demo</span></div></div>
         <h1 style="margin-top:22px">Entrena con contexto.</h1>
         <p class="lead">Calendario, perfil físico, Garmin demo, vista atleta, vista mister y planificación semanal asistida por IA.</p>
         <form class="form" id="loginForm">
@@ -341,7 +341,7 @@ function renderCalendar(){
   return `<section class="panel"><div class="panel-title"><h2>Julio 2026</h2><div class="tabs"><button class="tab ${state.calendarMode==='month'?'active':''}" data-calendar-mode="month">Mes</button><button class="tab ${state.calendarMode==='week'?'active':''}" data-calendar-mode="week">Semana</button><span class="pill">${escapeHtml(currentAthlete().name)}</span></div></div>
     <div class="calendar">
       ${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d=>`<div class="dow">${d}</div>`).join('')}
-      ${days.map(day => { const dayWs = workoutsFor(day); return `<article class="day ${state.selectedDay===day?'active':''} ${dayWs.length?'has-workouts':''}" data-day="${day}"><strong>${day}</strong><span class="day-mobile-summary">${dayWs.length ? `${dayWs.length} sesión(es) · ${dayWs.reduce((a,w)=>a+Number(w.duration||0),0)} min` : 'Libre'}</span>${dayWs.map(w => `<button class="workout ${sportClass(w.sport)}" data-workout="${w.id}">${escapeHtml(w.title)} · ${w.duration}'<br><span>${statusLabel(w.status)} · ${escapeHtml(w.intensity)}</span></button>`).join('')}</article>`; }).join('')}
+      ${days.map(day => { const dayWs = workoutsFor(day); const weekday = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][new Date(2026,6,day).getDay()]; return `<article class="day ${state.selectedDay===day?'active':''} ${dayWs.length?'has-workouts':''}" data-day="${day}"><div class="day-date"><span>${weekday}</span><strong>${day}</strong></div><span class="day-mobile-summary">${dayWs.length ? `${dayWs.length} sesión(es) · ${dayWs.reduce((a,w)=>a+Number(w.duration||0),0)} min` : 'Libre'}</span><span class="day-open">Abrir</span>${dayWs.map(w => `<button class="workout ${sportClass(w.sport)}" data-workout="${w.id}">${escapeHtml(w.title)} · ${w.duration}'<br><span>${statusLabel(w.status)} · ${escapeHtml(w.intensity)}</span></button>`).join('')}</article>`; }).join('')}
     </div></section>`;
 }
 

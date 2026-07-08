@@ -221,6 +221,7 @@ Incluye:
 - guardia demo de acceso Mister con explicación del modelo real de verificación server-side,
 - landing page pública con CTA hacia login,
 - calendario móvil vertical sin scroll horizontal, con días más anchos que altos e indicadores sutiles de actividad,
+- calendario móvil reorganizado con día de la semana, número alineado a la izquierda, resumen centrado y botón “Abrir” a la derecha,
 - estadísticas personales ampliadas/editables: peso, altura y FC reposo,
 - panel “Conexión Garmin” con conexión demo y nota de integración OAuth/API real.
 
