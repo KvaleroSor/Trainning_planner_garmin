@@ -13,24 +13,33 @@ const TEMPLATES = {
   cycling: [
     { title: 'Z2 resistencia', duration: 60, intensity: 'Z2' },
     { title: 'Sweet Spot 3x10', duration: 75, intensity: '88–92% FTP' },
+    { title: 'VO2max 5x3', duration: 70, intensity: 'Z5' },
     { title: 'Fondo controlado', duration: 120, intensity: 'Z2' },
   ],
   running: [
     { title: 'Rodaje suave', duration: 35, intensity: 'Z2' },
+    { title: 'Series 6x800', duration: 55, intensity: 'Z4' },
     { title: 'Cambios de ritmo', duration: 45, intensity: 'Z3' },
     { title: 'Tirada cómoda', duration: 60, intensity: 'Z2' },
   ],
   swimming: [
-    { title: 'Técnica + aeróbico', duration: 45, intensity: 'Suave' },
-    { title: 'Series CSS', duration: 55, intensity: 'Media' },
+    { title: 'Técnica + aeróbico', duration: 45, intensity: '1.600m suave' },
+    { title: 'Series CSS', duration: 55, intensity: '8x100 CSS' },
+    { title: 'Pull + técnica', duration: 50, intensity: '2.000m control' },
   ],
   strength: [
     { title: 'Fuerza general', duration: 45, intensity: 'RPE 6' },
+    { title: 'Pierna + core', duration: 50, intensity: 'RPE 7' },
     { title: 'Core + movilidad', duration: 30, intensity: 'RPE 5' },
   ],
   triathlon: [
     { title: 'Brick bici+carrera', duration: 80, intensity: 'Z2/Z3' },
     { title: 'Técnica natación', duration: 45, intensity: 'Suave' },
+    { title: 'Run transición', duration: 35, intensity: 'Z2' },
+  ],
+  mobility: [
+    { title: 'Movilidad cadera/espalda', duration: 25, intensity: 'Suave' },
+    { title: 'Descarga guiada', duration: 20, intensity: 'Muy suave' },
   ],
 };
 
@@ -124,7 +133,7 @@ function renderLogin(){
   app.innerHTML = `
     <section class="login-wrap">
       <div class="login-card">
-        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v1.4 · login local demo</span></div></div>
+        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v1.5 · login local demo</span></div></div>
         <h1 style="margin-top:22px">Entrena con contexto.</h1>
         <p class="lead">Calendario, perfil físico, Garmin demo, vista atleta, vista mister y planificación semanal asistida por IA.</p>
         <form class="form" id="loginForm">
@@ -152,6 +161,7 @@ function renderAthlete(athlete){
     <section class="main-grid">
       <div class="grid">
         ${renderWeekFocus()}
+        ${renderMicrocycle()}
         ${renderCoachAlerts()}
         ${renderCalendar()}
         ${renderProfile(athlete)}
@@ -179,6 +189,7 @@ function renderCoach(athlete){
           </div>
         </section>
         ${renderWeekFocus()}
+        ${renderMicrocycle()}
         ${renderCoachAlerts()}
         ${renderCalendar()}
       </div>
@@ -243,6 +254,26 @@ function renderWeekFocus(){
       <span><b>${s.plannedCount}</b><small>pend.</small></span>
     </div>
   </section>`;
+}
+
+
+function dayLoad(day){
+  const ws = workoutsFor(day);
+  const minutes = ws.reduce((a,w)=>a+Number(w.duration||0),0);
+  const hard = ws.some(w => /Z4|Z5|VO2|88|92|RPE 8|RPE 9/i.test(`${w.intensity} ${w.title}`));
+  const imported = ws.some(w => w.status === 'imported');
+  const skipped = ws.some(w => w.status === 'skipped');
+  return { ws, minutes, hard, imported, skipped };
+}
+
+function renderMicrocycle(){
+  const start = Math.max(1, Math.min(25, state.selectedDay - 3));
+  const days = Array.from({length:7}, (_,i)=>start+i);
+  return `<section class="panel"><div class="panel-title"><h2>Microciclo</h2><span class="pill">Carga semanal</span></div><div class="microcycle">${days.map(day=>{
+    const d=dayLoad(day);
+    const level = d.minutes === 0 ? 'rest' : d.minutes >= 90 ? 'high' : d.hard ? 'hard' : 'base';
+    return `<button class="micro-day ${level} ${state.selectedDay===day?'active':''}" data-day="${day}"><b>${day}</b><span>${d.minutes ? `${d.minutes} min` : 'Descanso'}</span><small>${d.imported?'Garmin · ':''}${d.hard?'Intenso':d.skipped?'Saltado':d.ws.length?`${d.ws.length} sesión(es)`:'Movilidad opcional'}</small></button>`;
+  }).join('')}</div></section>`;
 }
 
 function renderCalendar(){
@@ -345,11 +376,20 @@ function renderWorkoutForm(){
 function renderGarminAnalysis(a, coach=false){
   const g = state.garminActivities.find(x => x.athleteId === a.id);
   if(!g) return `<section class="panel"><div class="panel-title"><h2>Garmin</h2></div><p class="lead">Sin actividad Garmin demo para este atleta.</p></section>`;
+  const planned = state.workouts.find(w => w.athleteId === a.id && w.day === g.day && w.status !== 'imported');
+  const plannedDuration = Number(planned?.duration || g.duration);
+  const diff = g.duration - plannedDuration;
+  const compliance = Math.round((g.duration / Math.max(1, plannedDuration)) * 100);
+  const color = compliance < 80 ? 'warn' : compliance > 125 ? 'danger' : 'ok';
   const zoneText = Object.entries(g.zones || {}).map(([k,v]) => `${k}: ${v}m`).join(' · ');
+  const intensityFlag = (g.zones?.Z4 || 0) + (g.zones?.Z5 || 0) > 12 ? 'intensidad alta' : 'intensidad controlada';
   const msg = coach
-    ? `Análisis mister: completó ${g.duration} min. NP ${g.np}W, FC media ${g.avgHr}. Revisar intensidad: ${zoneText}. Si fatiga sube de 7/10, recomiendo descarga o Z2 suave.`
-    : `Buen trabajo: ${g.duration} min y ${g.distance} km. La mayor parte fue controlada. ${zoneText}. Si mañana notas fatiga, mantén recuperación.`;
-  return `<section class="panel analysis"><div class="panel-title"><h2>Análisis Garmin</h2><span class="pill">Demo importada</span></div><div class="item"><b>${g.distance} km · ${g.duration} min · +${g.elevation} m</b></div><div class="item">Potencia media ${g.avgPower}W · NP ${g.np}W · Cadencia ${g.cadence} rpm</div><div class="item">FC media ${g.avgHr} · FC máx ${g.maxHr}</div><div class="item">${msg}</div></section>`;
+    ? `Plan vs real: ${planned ? escapeHtml(planned.title) : 'sin plan vinculado'} · ${plannedDuration} min previstos vs ${g.duration} min reales (${diff>=0?'+':''}${diff} min). ${intensityFlag}.`
+    : `Hiciste ${compliance}% de la duración prevista. ${Math.abs(diff) <= 10 ? 'Encaja bien con el plan.' : diff > 0 ? 'Te fuiste por encima; ojo con acumular fatiga.' : 'Quedó corto; no pasa nada, ajustamos.'}`;
+  return `<section class="panel analysis"><div class="panel-title"><h2>Análisis Garmin</h2><span class="pill">Demo importada</span></div>
+    <div class="garmin-score ${color}"><strong>${compliance}%</strong><span>cumplimiento plan vs real</span></div>
+    <div class="compare-grid"><div><small>Plan</small><b>${plannedDuration} min</b></div><div><small>Real</small><b>${g.duration} min</b></div><div><small>Diferencia</small><b>${diff>=0?'+':''}${diff} min</b></div></div>
+    <div class="item"><b>${g.distance} km · ${g.duration} min · +${g.elevation} m</b></div><div class="item">Potencia media ${g.avgPower}W · NP ${g.np}W · Cadencia ${g.cadence} rpm</div><div class="item">FC media ${g.avgHr} · FC máx ${g.maxHr}</div><div class="item">${zoneText}</div><div class="item">${msg}</div></section>`;
 }
 
 function bindCommon(){
