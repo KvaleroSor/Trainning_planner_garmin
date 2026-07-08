@@ -161,7 +161,7 @@ Objetivo:
 - resumen semanal,
 - idea de Garmin conectado/simulado.
 
-## PWA funcional v2.1
+## PWA funcional v2.3
 
 Deploy móvil/demo público:
 
@@ -222,6 +222,8 @@ Incluye:
 - landing page pública con CTA hacia login,
 - calendario móvil vertical sin scroll horizontal, con días más anchos que altos e indicadores sutiles de actividad,
 - calendario móvil reorganizado con día de la semana, número alineado a la izquierda, resumen centrado y botón “Abrir” a la derecha,
+- vista Mes en móvil recuperada como calendario 7 columnas con estilo propio y punto sutil en días con actividad,
+- tarjeta semanal sustituye al microciclo: totales de carga y tira de días de la semana marcando el día seleccionado,
 - estadísticas personales ampliadas/editables: peso, altura y FC reposo,
 - panel “Conexión Garmin” con conexión demo y nota de integración OAuth/API real.
 

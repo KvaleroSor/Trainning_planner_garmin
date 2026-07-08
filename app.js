@@ -161,7 +161,7 @@ function renderLogin(){
   app.innerHTML = `
     <section class="login-wrap">
       <div class="login-card">
-        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v2.2 · login local demo</span></div></div>
+        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v2.3 · login local demo</span></div></div>
         <h1 style="margin-top:22px">Entrena con contexto.</h1>
         <p class="lead">Calendario, perfil físico, Garmin demo, vista atleta, vista mister y planificación semanal asistida por IA.</p>
         <form class="form" id="loginForm">
@@ -328,18 +328,20 @@ function dayLoad(day){
 function renderMicrocycle(){
   const start = Math.max(1, Math.min(25, state.selectedDay - 3));
   const days = Array.from({length:7}, (_,i)=>start+i);
-  return `<section class="panel"><div class="panel-title"><h2>Microciclo</h2><span class="pill">Carga semanal</span></div><div class="microcycle">${days.map(day=>{
-    const d=dayLoad(day);
-    const level = d.minutes === 0 ? 'rest' : d.minutes >= 90 ? 'high' : d.hard ? 'hard' : 'base';
-    return `<button class="micro-day ${level} ${state.selectedDay===day?'active':''}" data-day="${day}"><b>${day}</b><span>${d.minutes ? `${d.minutes} min` : 'Descanso'}</span><small>${d.imported?'Garmin · ':''}${d.hard?'Intenso':d.skipped?'Saltado':d.ws.length?`${d.ws.length} sesión(es)`:'Movilidad opcional'}</small></button>`;
-  }).join('')}</div></section>`;
+  const s = weekSummary();
+  const weekdayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  return `<section class="panel week-stats-card"><div class="panel-title"><div><span class="small">Semana actual</span><h2>Resumen de carga</h2></div><span class="pill">Día ${state.selectedDay}</span></div>
+    <div class="week-stat-grid"><article><span>Plan</span><b>${formatMinutes(s.planned)}</b></article><article><span>Real</span><b>${formatMinutes(s.done)}</b></article><article><span>Cumpl.</span><b>${s.consistency}%</b></article><article><span>Pend.</span><b>${s.plannedCount}</b></article></div>
+    <div class="weekday-strip">${days.map(day=>{ const d=dayLoad(day); const weekday=weekdayNames[new Date(2026,6,day).getDay()]; return `<button class="weekday-pill ${state.selectedDay===day?'active':''} ${d.minutes?'has-load':''}" data-day="${day}"><span>${weekday}</span><b>${day}</b><small>${d.minutes ? `${d.minutes} min` : 'Libre'}</small></button>`; }).join('')}</div>
+  </section>`;
 }
+
 
 function renderCalendar(){
   const start = Math.max(1, Math.min(25, state.selectedDay - 3));
   const days = state.calendarMode === 'week' ? Array.from({length: 7}, (_,i) => start+i) : Array.from({length: 31}, (_,i) => i+1);
-  return `<section class="panel"><div class="panel-title"><h2>Julio 2026</h2><div class="tabs"><button class="tab ${state.calendarMode==='month'?'active':''}" data-calendar-mode="month">Mes</button><button class="tab ${state.calendarMode==='week'?'active':''}" data-calendar-mode="week">Semana</button><span class="pill">${escapeHtml(currentAthlete().name)}</span></div></div>
-    <div class="calendar">
+  return `<section class="panel calendar-panel calendar-${state.calendarMode}"><div class="panel-title"><h2>Julio 2026</h2><div class="tabs"><button class="tab ${state.calendarMode==='month'?'active':''}" data-calendar-mode="month">Mes</button><button class="tab ${state.calendarMode==='week'?'active':''}" data-calendar-mode="week">Semana</button><span class="pill">${escapeHtml(currentAthlete().name)}</span></div></div>
+    <div class="calendar ${state.calendarMode}">
       ${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d=>`<div class="dow">${d}</div>`).join('')}
       ${days.map(day => { const dayWs = workoutsFor(day); const weekday = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][new Date(2026,6,day).getDay()]; return `<article class="day ${state.selectedDay===day?'active':''} ${dayWs.length?'has-workouts':''}" data-day="${day}"><div class="day-date"><span>${weekday}</span><strong>${day}</strong></div><span class="day-mobile-summary">${dayWs.length ? `${dayWs.length} sesión(es) · ${dayWs.reduce((a,w)=>a+Number(w.duration||0),0)} min` : 'Libre'}</span><span class="day-open">Abrir</span>${dayWs.map(w => `<button class="workout ${sportClass(w.sport)}" data-workout="${w.id}">${escapeHtml(w.title)} · ${w.duration}'<br><span>${statusLabel(w.status)} · ${escapeHtml(w.intensity)}</span></button>`).join('')}</article>`; }).join('')}
     </div></section>`;
