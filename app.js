@@ -49,6 +49,7 @@ const DEFAULT_STATE = {
   selectedDay: 3,
   calendarMode: 'month',
   page: 'dashboard',
+  modalDay: null,
   editingWorkoutId: null,
   selectedAthleteId: 'k',
   athletes: [
@@ -88,6 +89,7 @@ function loadState(){
     merged.lastAiPlan = loaded.lastAiPlan || [];
     merged.calendarMode = loaded.calendarMode || 'month';
     merged.page = loaded.page || 'dashboard';
+    merged.modalDay = loaded.modalDay || null;
     return merged;
   }
   catch { return structuredClone(DEFAULT_STATE); }
@@ -146,6 +148,7 @@ function render(){
     </header>
     ${renderAppNav()}
     ${renderCurrentPage(athlete)}
+    ${renderDayModal()}
   `;
   bindCommon();
 }
@@ -154,7 +157,7 @@ function renderLogin(){
   app.innerHTML = `
     <section class="login-wrap">
       <div class="login-card">
-        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v1.6 · login local demo</span></div></div>
+        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v1.7 · login local demo</span></div></div>
         <h1 style="margin-top:22px">Entrena con contexto.</h1>
         <p class="lead">Calendario, perfil físico, Garmin demo, vista atleta, vista mister y planificación semanal asistida por IA.</p>
         <form class="form" id="loginForm">
@@ -321,6 +324,15 @@ function renderSelectedDay(){
   return `<section class="detail-card"><small>Día seleccionado · ${state.selectedDay} julio</small><h2>${list[0] ? `${list.length} ${list.length>1?'sesiones':'sesión'}` : 'Día libre'}</h2><p>${list.length ? 'Gestiona el estado del día sin salir del calendario.' : 'Sin entrenamiento. Buen día para descanso, movilidad o meter algo con cabeza.'}</p>${cards || ''}</section>`;
 }
 
+
+function renderDayModal(){
+  if(!state.modalDay) return '';
+  const day = Number(state.modalDay);
+  const list = workoutsFor(day);
+  const total = list.reduce((a,w)=>a+Number(w.duration||0),0);
+  return `<div class="modal-backdrop" data-close-modal="true"><section class="day-modal" role="dialog" aria-modal="true" aria-label="Día ${day}"><div class="panel-title"><div><span class="small">Detalle del día</span><h2>${day} julio · ${total || 0} min</h2></div><button class="modal-close" data-close-modal="true">Cerrar</button></div>${list.length ? list.map(w=>`<article class="modal-workout ${sportClass(w.sport)}"><div><b>${escapeHtml(w.title)}</b><p>${SPORTS[w.sport]?.label || w.sport} · ${w.duration} min · ${escapeHtml(w.intensity)} · ${statusLabel(w.status)}</p></div><div class="inline-actions">${w.status === 'planned' ? `<button class="mini-btn" data-status="completed" data-id="${w.id}">Completar</button><button class="mini-btn" data-status="skipped" data-id="${w.id}">Saltar</button>` : ''}${w.source !== 'garmin' ? `<button class="mini-btn" data-edit="${w.id}">Editar</button><button class="mini-btn danger" data-delete="${w.id}">Borrar</button>` : ''}</div></article>`).join('') : '<p class="lead">Día libre. Perfecto para descanso, movilidad o no hacer el cafre.</p>'}</section></div>`;
+}
+
 function renderFeedbackForm(readOnly=false){
   const f = selectedFeedback();
   return `<section class="panel"><div class="panel-title"><h2>Feedback post-entreno</h2><span class="pill">Día ${state.selectedDay}</span></div>
@@ -420,8 +432,9 @@ function bindCommon(){
   document.querySelectorAll('[data-page]').forEach(b => b.addEventListener('click', () => { state.page=b.dataset.page; save(); render(); }));
   document.querySelectorAll('[data-calendar-mode]').forEach(b => b.addEventListener('click', () => { state.calendarMode=b.dataset.calendarMode; save(); render(); }));
   document.querySelector('#logout')?.addEventListener('click',()=>{ state.session=null; save(); renderLogin(); });
-  document.querySelector('#resetDemo')?.addEventListener('click',()=>{ localStorage.removeItem(STORE_KEY); state=structuredClone(DEFAULT_STATE); state.session={email:'k@demo.local',loginAt:new Date().toISOString()}; state.page='dashboard'; save(); render(); });
-  document.querySelectorAll('[data-day]').forEach(d => d.addEventListener('click', e => { if(e.target.closest('.workout')) return; state.selectedDay=Number(d.dataset.day); save(); render(); }));
+  document.querySelector('#resetDemo')?.addEventListener('click',()=>{ localStorage.removeItem(STORE_KEY); state=structuredClone(DEFAULT_STATE); state.session={email:'k@demo.local',loginAt:new Date().toISOString()}; state.page='dashboard'; state.modalDay=null; save(); render(); });
+  document.querySelectorAll('[data-day]').forEach(d => d.addEventListener('click', e => { state.selectedDay=Number(d.dataset.day); state.modalDay=Number(d.dataset.day); save(); render(); }));
+  document.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', e => { if(e.target.dataset.closeModal || e.currentTarget.dataset.closeModal){ state.modalDay=null; save(); render(); } }));
   document.querySelectorAll('[data-athlete]').forEach(b => b.addEventListener('click',()=>{ state.selectedAthleteId=b.dataset.athlete; save(); render(); }));
   document.querySelector('#profileForm')?.addEventListener('submit', e => { e.preventDefault(); const a=currentAthlete(); const f=new FormData(e.currentTarget); ['sport','level','objective','availability','pain'].forEach(k=>a[k]=f.get(k)); ['ftp','maxHr','thresholdHr','weeklyHours','fatigue'].forEach(k=>a[k]=Number(f.get(k)||0)); save(); render(); });
   document.querySelector('#feedbackForm')?.addEventListener('submit', e => { e.preventDefault(); const f=new FormData(e.currentTarget); state.feedback[feedbackKey()]={ rpe:Number(f.get('rpe')||5), fatigue:Number(f.get('fatigue')||5), sleep:Number(f.get('sleep')||7), pain:f.get('pain') || 'No', comment:f.get('comment') || '' }; currentAthlete().fatigue=Number(f.get('fatigue')||currentAthlete().fatigue||5); save(); render(); });
@@ -442,7 +455,7 @@ function bindCommon(){
   document.querySelector('#cancelEdit')?.addEventListener('click',()=>{ state.editingWorkoutId=null; save(); render(); });
   document.querySelectorAll('[data-template]').forEach(b => b.addEventListener('click', () => { const [sport,idx]=b.dataset.template.split(':'); const t=(TEMPLATES[sport]||[])[Number(idx)]; if(!t) return; state.workouts.push({id:uid(),athleteId:currentAthlete().id,day:state.selectedDay,sport,title:t.title,duration:t.duration,intensity:t.intensity,status:'planned',source:'template'}); save(); render(); }));
   document.querySelectorAll('[data-status]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const w=state.workouts.find(x=>x.id===b.dataset.id); if(w) w.status=b.dataset.status; save(); render(); }));
-  document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.editingWorkoutId=b.dataset.edit; state.role='coach'; state.page='dashboard'; save(); render(); }));
+  document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.editingWorkoutId=b.dataset.edit; state.role='coach'; state.page='dashboard'; state.modalDay=null; save(); render(); }));
   document.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.workouts=state.workouts.filter(w=>w.id!==b.dataset.delete); save(); render(); }));
   document.querySelector('#generateWeek')?.addEventListener('click', generateWeekDemo);
   document.querySelector('#duplicateWeek')?.addEventListener('click', duplicateCurrentWeek);

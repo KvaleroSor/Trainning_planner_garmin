@@ -100,3 +100,148 @@ body {
 .alert.info { background: rgba(201,221,255,.50); }
 .tab.active{background:linear-gradient(135deg,#dbeafe,#fce7f3);color:#283044;border-color:rgba(180,160,220,.30);box-shadow:0 14px 34px rgba(170,154,210,.14)}.detail-card{background:linear-gradient(135deg,#fff7f1,#edf7ff 52%,#f8f0ff);color:var(--ink);border:1px solid rgba(255,255,255,.78);box-shadow:0 26px 72px rgba(120,100,90,.12)}.detail-card small,.detail-card p{color:var(--muted)}.detail-card .selected-workout{background:rgba(255,255,255,.66);border:1px solid rgba(140,128,118,.12)}.detail-card .mini-btn{background:rgba(255,255,255,.78);color:#283044}.detail-card .mini-btn.danger{background:rgba(248,214,221,.9);color:#64313a}.btn.danger{background:#f8d6dd;color:#64313a}.btn.dark{background:#dbeafe;color:#283044}
 .app-nav{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px;padding:8px;border:1px solid rgba(255,255,255,.72);background:rgba(255,252,248,.58);backdrop-filter:blur(18px);border-radius:999px;box-shadow:var(--shadow)}.nav-item{border:0;border-radius:999px;padding:11px 16px;background:transparent;color:var(--muted);font-weight:950}.nav-item.active{background:linear-gradient(135deg,#dbeafe,#fce7f3);color:#283044;box-shadow:0 12px 30px rgba(170,154,210,.14)}@media(max-width:760px){.app-nav{border-radius:24px}.nav-item{flex:1 1 42%;}}
+
+/* v1.7 fresh pastel minimal palette + calendar/modal refinement */
+:root {
+  --bg: #fffdf8;
+  --panel: rgba(255, 255, 252, .92);
+  --panel-strong: #ffffff;
+  --ink: #243042;
+  --muted: #7a8594;
+  --line: rgba(86, 78, 68, .14);
+  --blue: #b9dcff;
+  --violet: #d9c7ff;
+  --mint: #bff0d7;
+  --rose: #ffc7d7;
+  --amber: #ffe38f;
+  --danger: #ffb4c8;
+  --green: #bff0d7;
+  --shadow: 0 20px 54px rgba(77, 65, 52, .08);
+}
+body {
+  background: linear-gradient(180deg, #fffdf8 0%, #fbf8ee 100%);
+}
+.logo {
+  background: #ffe38f;
+  color: #243042;
+  box-shadow: 0 14px 30px rgba(220, 175, 70, .18);
+}
+.btn,
+.pill,
+.tab,
+.nav-item,
+.mini-btn,
+.template-chip {
+  background: #ffffff;
+  color: #465366;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+.btn.primary,
+.tab.active,
+.nav-item.active {
+  background: #b9dcff;
+  color: #1f2e42;
+  border: 1px solid rgba(82, 128, 180, .20);
+  box-shadow: 0 10px 24px rgba(82, 128, 180, .12);
+}
+.btn.danger,
+.mini-btn.danger {
+  background: #ffc7d7;
+  color: #653143;
+}
+.panel,
+.login-card,
+.app-nav {
+  background: rgba(255,255,252,.88);
+  border-color: rgba(86,78,68,.12);
+  box-shadow: var(--shadow);
+}
+.today-card,
+.detail-card {
+  background: #ffffff;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.today-card .small,
+.today-card p,
+.detail-card small,
+.detail-card p { color: var(--muted); }
+.today-strip span { background: #f8fafc; border: 1px solid var(--line); }
+.calendar { gap: 12px; }
+.day {
+  min-height: 136px;
+  max-height: none;
+  overflow: hidden;
+  padding: 12px;
+  border-radius: 24px;
+  background: #ffffff;
+}
+.day.active { background: #fff7d6; border-color: rgba(220,175,70,.28); box-shadow: 0 14px 34px rgba(220,175,70,.10); }
+.workout {
+  width: 100%;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.25;
+  min-height: 35px;
+}
+.workout br { display: none; }
+.workout span {
+  display: inline;
+  opacity: .72;
+  margin-left: 4px;
+}
+.workout.sport-cycling,.selected-workout.sport-cycling,.modal-workout.sport-cycling { background:#d9ecff; }
+.workout.sport-running,.selected-workout.sport-running,.modal-workout.sport-running { background:#d9f7e6; }
+.workout.sport-swimming,.selected-workout.sport-swimming,.modal-workout.sport-swimming { background:#d7f4ff; }
+.workout.sport-strength,.selected-workout.sport-strength,.modal-workout.sport-strength { background:#ffe2ba; }
+.workout.sport-triathlon,.selected-workout.sport-triathlon,.modal-workout.sport-triathlon { background:#eadcff; }
+.workout.sport-mobility,.selected-workout.sport-mobility,.modal-workout.sport-mobility { background:#ffe1ec; }
+.micro-day.base { background:#d9f7e6; }
+.micro-day.hard { background:#ffe38f; }
+.micro-day.high { background:#ffc7d7; }
+.micro-day.rest { background:#ffffff; }
+.garmin-score.ok { background:#bff0d7; }
+.garmin-score.warn { background:#ffe38f; }
+.garmin-score.danger { background:#ffc7d7; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(36,48,66,.28);
+  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  z-index: 50;
+}
+.day-modal {
+  width: min(720px, 100%);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  background: #fffdf8;
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 34px;
+  padding: 22px;
+  box-shadow: 0 34px 90px rgba(36,48,66,.22);
+}
+.modal-close {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--ink);
+  padding: 10px 14px;
+  font-weight: 900;
+}
+.modal-workout {
+  display: grid;
+  gap: 12px;
+  border-radius: 22px;
+  padding: 14px;
+  margin-top: 10px;
+  color: var(--ink);
+}
+.modal-workout p { margin: 4px 0 0; color: rgba(36,48,66,.72); }
+@media (max-width: 900px){ .calendar{grid-template-columns:repeat(2,1fr)} .dow{display:none} }
