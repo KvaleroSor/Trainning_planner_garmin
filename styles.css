@@ -245,3 +245,14 @@ body {
 }
 .modal-workout p { margin: 4px 0 0; color: rgba(36,48,66,.72); }
 @media (max-width: 900px){ .calendar{grid-template-columns:repeat(2,1fr)} .dow{display:none} }
+
+/* v1.8 detail modal as main day workflow */
+.day-detail-btn{margin-top:14px;width:100%;justify-content:center;background:#b9dcff;color:#243042;border-color:rgba(82,128,180,.20)}
+.compact-day-hint{background:#ffffff;border-style:dashed}
+.compact-day-hint .panel-title{align-items:center}
+.modal-subtitle{margin:4px 0 0;font-size:.95rem}
+.day-modal{scrollbar-width:thin;scrollbar-color:#d9c7ff transparent}
+.day-modal::-webkit-scrollbar{width:8px}.day-modal::-webkit-scrollbar-thumb{background:#d9c7ff;border-radius:99px}
+.modal-workout{box-shadow:0 12px 28px rgba(36,48,66,.06)}
+.inline-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:900px){.compact-day-hint{order:-1}.day-modal{border-radius:26px;padding:18px}.inline-actions{justify-content:flex-start}}
