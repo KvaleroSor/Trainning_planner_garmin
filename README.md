@@ -199,7 +199,8 @@ Incluye:
 - acción “Duplicar semana” para copiar entrenos planificados a la semana siguiente,
 - microciclo semanal visual con días de descanso/base/intensidad/carga alta,
 - plantillas por deporte ampliadas: ciclismo, running, natación, fuerza, triatlón y movilidad,
-- análisis Garmin visual con semáforo de cumplimiento plan vs real, diferencia de minutos y lectura atleta/mister.
+- análisis Garmin visual con semáforo de cumplimiento plan vs real, diferencia de minutos y lectura atleta/mister,
+- refinado visual a paleta pastel suave, menos neón y más premium.
 
 Notas:
 
