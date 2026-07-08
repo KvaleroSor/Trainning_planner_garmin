@@ -161,7 +161,7 @@ Objetivo:
 - resumen semanal,
 - idea de Garmin conectado/simulado.
 
-## PWA funcional v1.9
+## PWA funcional v2.0
 
 ```text
 app.html
@@ -209,7 +209,10 @@ Incluye:
 - panel lateral de “Día seleccionado” eliminado del dashboard para evitar redundancia,
 - botón “Ver detalle del día” en Panel Hoy y tarjeta compacta de acceso rápido,
 - responsive v1.9: calendario horizontal cómodo en móvil/tablet, menú compacto y modal adaptado,
-- sistema de sombras suaves en paneles, tarjetas, días, botones y modales para dar profundidad sin oscurecer la estética pastel.
+- sistema de sombras suaves en paneles, tarjetas, días, botones y modales para dar profundidad sin oscurecer la estética pastel,
+- centro de mando Mister con selección de atletas, métricas por atleta y acciones rápidas de semana,
+- alta rápida de atletas desde la vista Mister,
+- guardia demo de acceso Mister con explicación del modelo real de verificación server-side.
 
 Notas:
 

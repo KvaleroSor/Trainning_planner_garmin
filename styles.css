@@ -333,3 +333,20 @@ body {
   .microcycle{grid-template-columns:1fr}
   .today-strip{grid-template-columns:1fr 1fr}
 }
+
+/* v2.0 coach command center + verified access */
+.coach-gate{min-height:62vh;display:grid;place-items:center}.coach-gate-card{max-width:920px;text-align:left}.coach-gate-card h1{margin:.25rem 0}.gate-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.gate-grid article{background:#fff;border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--shadow-sm)}
+.coach-command{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:18px;background:#fff}.coach-command h1{margin:4px 0}.coach-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.coach-layout{grid-template-columns:minmax(0,1.45fr) minmax(330px,.55fr)}
+.coach-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.coach-athlete{align-items:stretch;text-align:left;border:1px solid var(--line)}.coach-athlete.active{background:#fff7d6;border-color:rgba(220,175,70,.35);box-shadow:var(--shadow-md)}.coach-card-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}.coach-card-metrics em{font-style:normal;background:rgba(255,255,255,.72);border:1px solid rgba(36,48,66,.08);border-radius:999px;padding:6px 8px;font-size:.76rem;color:#465366;text-align:center}.compact-form{gap:10px}.compact-form label{font-size:.82rem}.compact-form input,.compact-form select{margin-top:5px}
+@media(max-width:980px){.coach-command{display:grid}.coach-actions{justify-content:flex-start}.coach-layout{grid-template-columns:1fr}.gate-grid{grid-template-columns:1fr}.coach-card-metrics{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:520px){.coach-actions .btn{flex:1 1 100%}.coach-roster{grid-template-columns:1fr}.coach-card-metrics{grid-template-columns:1fr}.gate-grid article{padding:14px}}
+
+/* v2.0 visual fix: nav should not float over coach command content */
+.app-nav{position:relative;top:auto;z-index:1;margin-bottom:18px}
+.coach-command{margin-top:4px}
+
+/* v2.0 visual fix: coach grid must not overlap sidebar */
+.coach-layout{grid-template-columns:minmax(0,1fr) 340px;align-items:start}
+.coach-layout>.grid,.coach-layout>aside,.panel{min-width:0}
+.coach-layout .calendar{max-width:100%}
+@media(max-width:1100px){.coach-layout{grid-template-columns:1fr}.coach-layout>aside{order:-1}}

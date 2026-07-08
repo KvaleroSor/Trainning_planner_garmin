@@ -46,6 +46,7 @@ const TEMPLATES = {
 const DEFAULT_STATE = {
   session: null,
   role: 'athlete',
+  coachVerified: false,
   selectedDay: 3,
   calendarMode: 'month',
   page: 'dashboard',
@@ -88,6 +89,7 @@ function loadState(){
     merged.feedback = { ...structuredClone(DEFAULT_STATE.feedback), ...(loaded.feedback || {}) };
     merged.lastAiPlan = loaded.lastAiPlan || [];
     merged.calendarMode = loaded.calendarMode || 'month';
+    merged.coachVerified = Boolean(loaded.coachVerified);
     merged.page = loaded.page || 'dashboard';
     merged.modalDay = loaded.modalDay || null;
     return merged;
@@ -96,6 +98,7 @@ function loadState(){
 }
 function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 function currentAthlete(){ return state.athletes.find(a => a.id === state.selectedAthleteId) || state.athletes[0]; }
+function isCoachVerified(){ return Boolean(state.coachVerified); }
 function workoutsFor(day){ return state.workouts.filter(w => w.athleteId === currentAthlete().id && w.day === day); }
 function sportClass(s){ return `sport-${s || 'mobility'}`; }
 function statusLabel(s){ return ({ planned:'Planificado', completed:'Completado', skipped:'Saltado', imported:'Garmin' }[s] || s); }
@@ -127,6 +130,7 @@ function renderAppNav(){
 }
 
 function renderCurrentPage(athlete){
+  if(state.role === 'coach' && !isCoachVerified()) return renderCoachAccessGate();
   if(state.page === 'profile') return renderProfilePage(athlete);
   if(state.page === 'stats') return renderStatsPage(athlete);
   if(state.page === 'analysis') return renderAnalysisPage(athlete);
@@ -157,7 +161,7 @@ function renderLogin(){
   app.innerHTML = `
     <section class="login-wrap">
       <div class="login-card">
-        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v1.9 · login local demo</span></div></div>
+        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v2.0 · login local demo</span></div></div>
         <h1 style="margin-top:22px">Entrena con contexto.</h1>
         <p class="lead">Calendario, perfil físico, Garmin demo, vista atleta, vista mister y planificación semanal asistida por IA.</p>
         <form class="form" id="loginForm">
@@ -195,28 +199,52 @@ function renderAthleteDashboard(athlete){
     </section>`;
 }
 
+function summaryForAthlete(id){
+  const ws = state.workouts.filter(w => w.athleteId === id);
+  const planned = ws.filter(w => w.status !== 'imported').reduce((a,w)=>a+Number(w.duration||0),0);
+  const done = ws.filter(w => ['completed','imported'].includes(w.status)).reduce((a,w)=>a+Number(w.duration||0),0);
+  const pending = ws.filter(w => w.status === 'planned').length;
+  const skipped = ws.filter(w => w.status === 'skipped').length;
+  const consistency = planned ? Math.min(140, Math.round((done/planned)*100)) : 0;
+  return { planned, done, pending, skipped, consistency };
+}
+
+function renderCoachAccessGate(){
+  return `<section class="coach-gate"><div class="panel coach-gate-card"><span class="small">Acceso Mister</span><h1>Vista reservada para entrenadores verificados</h1><p class="lead">En producción esto no puede depender de botones ni localStorage. La app debe validar el rol en servidor antes de mostrar atletas, planes o acciones de edición.</p><div class="gate-grid"><article><b>Demo ahora</b><p>Activa una verificación local para revisar el flujo Mister sin backend.</p></article><article><b>Modelo real</b><p>Tabla CoachProfile con estado verified/pending, revisión admin, middleware por rol y permisos por relación coach-atleta.</p></article><article><b>Anti-colados</b><p>Rutas protegidas, API server-side, auditoría y nunca confiar en el frontend. Lo contrario sería darle llaves al becario con cafeína.</p></article></div><button class="btn primary" id="verifyCoachDemo">Verificar Mister demo</button></div></section>`;
+}
+
 function renderCoachDashboard(athlete){
   return `
-    <section class="main-grid">
+    <section class="coach-command panel">
+      <div><span class="small">Centro de mando Mister</span><h1>${escapeHtml(athlete.name)}</h1><p class="lead">Añade atletas, cambia de perfil y modifica semanas desde calendario, plantillas, IA o acciones rápidas.</p></div>
+      <div class="coach-actions"><button class="btn primary" id="generateWeek">Generar semana IA demo</button><button class="btn" id="applyBaseWeek">Semana base</button><button class="btn" id="duplicateWeek">Duplicar semana</button><button class="btn danger" id="clearWeek">Vaciar plan</button></div>
+    </section>
+    <section class="main-grid coach-layout">
       <div class="grid">
-        <section class="panel">
-          <div class="panel-title"><h2>Atletas</h2><div class="actions"><button class="btn" id="duplicateWeek">Duplicar semana</button><button class="btn primary" id="generateWeek">Generar semana IA demo</button></div></div>
-          <div class="coach-list">
-            ${state.athletes.map(a => `<button class="athlete-card" data-athlete="${a.id}"><span><b>${escapeHtml(a.name)}</b><br><span class="muted">${SPORTS[a.sport]?.label || a.sport} · ${escapeHtml(a.objective)}</span></span><span class="pill">${a.weeklyHours}h/sem</span></button>`).join('')}
-          </div>
-        </section>
+        ${renderCoachRoster()}
         ${renderWeekFocus()}
         ${renderMicrocycle()}
         ${renderCoachAlerts()}
         ${renderCalendar()}
       </div>
       <aside class="grid">
+        ${renderAddAthleteForm()}
         ${renderTodayPanel()}
         ${renderDayHint()}
         ${renderWorkoutForm()}
         ${renderAiPlan()}
       </aside>
     </section>`;
+}
+
+function renderCoachRoster(){
+  return `<section class="panel"><div class="panel-title"><h2>Atletas</h2><span class="pill">${state.athletes.length} activos</span></div><div class="coach-list coach-roster">
+    ${state.athletes.map(a => { const s=summaryForAthlete(a.id); return `<button class="athlete-card coach-athlete ${state.selectedAthleteId===a.id?'active':''}" data-athlete="${a.id}"><span><b>${escapeHtml(a.name)}</b><br><span class="muted">${SPORTS[a.sport]?.label || a.sport} · ${escapeHtml(a.objective)}</span></span><span class="coach-card-metrics"><em>${a.weeklyHours}h/sem</em><em>${s.consistency}% cumpl.</em><em>${s.pending} pend.</em></span></button>`; }).join('')}
+  </div></section>`;
+}
+
+function renderAddAthleteForm(){
+  return `<section class="panel"><div class="panel-title"><h2>Añadir atleta</h2><span class="pill">rápido</span></div><form class="form compact-form" id="addAthleteForm"><label>Nombre<input name="name" placeholder="Nombre" required /></label><label>Deporte<select name="sport">${Object.entries(SPORTS).map(([id,s])=>`<option value="${id}">${s.label}</option>`).join('')}</select></label><label>Objetivo<input name="objective" placeholder="Preparar 10K / FTP / triatlón..." required /></label><label>Disponibilidad<input name="availability" placeholder="Lun, Mié, Vie" /></label><label>Horas/sem<input name="weeklyHours" type="number" min="1" max="25" value="4" /></label><button class="btn primary" type="submit">Añadir y seleccionar</button></form></section>`;
 }
 
 function renderProfilePage(athlete){
@@ -433,11 +461,11 @@ function renderGarminAnalysis(a, coach=false){
 }
 
 function bindCommon(){
-  document.querySelectorAll('[data-role]').forEach(b => b.addEventListener('click', () => { state.role=b.dataset.role; save(); render(); }));
+  document.querySelectorAll('[data-role]').forEach(b => b.addEventListener('click', () => { state.role=b.dataset.role; state.page='dashboard'; save(); render(); }));
   document.querySelectorAll('[data-page]').forEach(b => b.addEventListener('click', () => { state.page=b.dataset.page; save(); render(); }));
   document.querySelectorAll('[data-calendar-mode]').forEach(b => b.addEventListener('click', () => { state.calendarMode=b.dataset.calendarMode; save(); render(); }));
   document.querySelector('#logout')?.addEventListener('click',()=>{ state.session=null; save(); renderLogin(); });
-  document.querySelector('#resetDemo')?.addEventListener('click',()=>{ localStorage.removeItem(STORE_KEY); state=structuredClone(DEFAULT_STATE); state.session={email:'k@demo.local',loginAt:new Date().toISOString()}; state.page='dashboard'; state.modalDay=null; save(); render(); });
+  document.querySelector('#resetDemo')?.addEventListener('click',()=>{ localStorage.removeItem(STORE_KEY); state=structuredClone(DEFAULT_STATE); state.session={email:'k@demo.local',loginAt:new Date().toISOString()}; state.page='dashboard'; state.modalDay=null; state.coachVerified=false; save(); render(); });
   document.querySelectorAll('[data-day]').forEach(d => d.addEventListener('click', e => { state.selectedDay=Number(d.dataset.day); state.modalDay=Number(d.dataset.day); save(); render(); }));
   document.querySelectorAll('[data-open-day]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.selectedDay=Number(b.dataset.openDay); state.modalDay=Number(b.dataset.openDay); save(); render(); }));
   document.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', e => { if(e.target.dataset.closeModal || e.currentTarget.dataset.closeModal){ state.modalDay=null; save(); render(); } }));
@@ -463,8 +491,12 @@ function bindCommon(){
   document.querySelectorAll('[data-status]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const w=state.workouts.find(x=>x.id===b.dataset.id); if(w) w.status=b.dataset.status; save(); render(); }));
   document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.editingWorkoutId=b.dataset.edit; state.role='coach'; state.page='dashboard'; state.modalDay=null; save(); render(); }));
   document.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.workouts=state.workouts.filter(w=>w.id!==b.dataset.delete); save(); render(); }));
+  document.querySelector('#verifyCoachDemo')?.addEventListener('click', () => { state.coachVerified=true; state.role='coach'; state.page='dashboard'; save(); render(); });
+  document.querySelector('#addAthleteForm')?.addEventListener('submit', addAthleteFromForm);
   document.querySelector('#generateWeek')?.addEventListener('click', generateWeekDemo);
   document.querySelector('#duplicateWeek')?.addEventListener('click', duplicateCurrentWeek);
+  document.querySelector('#applyBaseWeek')?.addEventListener('click', applyBaseWeek);
+  document.querySelector('#clearWeek')?.addEventListener('click', clearPlannedWeek);
 }
 
 
@@ -482,6 +514,43 @@ function duplicateCurrentWeek(){
   }));
   state.selectedDay = Math.min(31, Number(source[0].day)+7);
   state.calendarMode = 'week';
+  save(); render();
+}
+
+function addAthleteFromForm(e){
+  e.preventDefault();
+  const data = new FormData(e.currentTarget);
+  const name = String(data.get('name') || '').trim();
+  if(!name) return;
+  const sport = data.get('sport') || 'cycling';
+  const id = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,18) || uid();
+  const finalId = state.athletes.some(a=>a.id===id) ? `${id}-${uid().slice(0,3)}` : id;
+  state.athletes.push({ id: finalId, name, sport, level: 'Nuevo', objective: String(data.get('objective') || 'Objetivo pendiente'), availability: String(data.get('availability') || 'Por definir'), ftp: 0, maxHr: 185, thresholdHr: 165, weeklyHours: Number(data.get('weeklyHours') || 4), fatigue: 4, pain: 'Sin molestias' });
+  state.selectedAthleteId = finalId;
+  state.selectedDay = 1;
+  state.modalDay = null;
+  state.lastAiPlan = [];
+  save(); render();
+}
+
+function applyBaseWeek(){
+  const a = currentAthlete();
+  const templates = TEMPLATES[a.sport] || TEMPLATES.mobility;
+  state.workouts = state.workouts.filter(w => !(w.athleteId === a.id && w.source !== 'garmin' && w.day >= 1 && w.day <= 7));
+  const days = [1,3,5];
+  days.forEach((day,i)=>{
+    const t = templates[i % templates.length];
+    state.workouts.push({ id: uid(), athleteId: a.id, day, sport: a.sport, title: t.title, duration: t.duration, intensity: t.intensity, status:'planned', source:'manual' });
+  });
+  state.selectedDay = 1;
+  state.modalDay = null;
+  save(); render();
+}
+
+function clearPlannedWeek(){
+  const a = currentAthlete();
+  state.workouts = state.workouts.filter(w => !(w.athleteId === a.id && w.source !== 'garmin' && w.day >= 1 && w.day <= 7));
+  state.modalDay = null;
   save(); render();
 }
 

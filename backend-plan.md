@@ -37,9 +37,38 @@ AuditLog
 
 ```text
 ATHLETE
-COACH
+COACH_PENDING
+COACH_VERIFIED
 ADMIN
 ```
+
+## Verificación de Mister
+
+En producción la vista Mister **no debe depender del frontend**. Propuesta:
+
+```text
+CoachProfile
+- id
+- userId
+- status: PENDING | VERIFIED | REJECTED
+- verifiedAt
+- verifiedByAdminId
+- organizationName
+- licenseOrCredentialUrl opcional
+```
+
+Flujo recomendado:
+
+1. El usuario solicita perfil Mister.
+2. Sube datos mínimos: nombre, organización/club, acreditación opcional.
+3. Estado inicial `COACH_PENDING`.
+4. Un admin revisa y pasa a `COACH_VERIFIED`.
+5. Middleware server-side protege `/coach/*` y APIs de edición.
+6. Las relaciones `CoachAthleteRelation` limitan qué atletas puede ver/editar cada mister.
+7. `AuditLog` registra cambios de planes, atletas y permisos.
+
+Regla práctica: ocultar botones en frontend ayuda a UX, pero **la seguridad real vive en servidor**.
+
 
 ## Permisos mínimos
 

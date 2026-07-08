@@ -1,5 +1,5 @@
-const CACHE_NAME = 'training-planner-v14';
-const ASSETS = ['./app.html', './styles.css?v=21', './app.js?v=19', './manifest.webmanifest', './icon.svg'];
+const CACHE_NAME = 'training-planner-v17';
+const ASSETS = ['./app.html', './styles.css?v=24', './app.js?v=20', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
