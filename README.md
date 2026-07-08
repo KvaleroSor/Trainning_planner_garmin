@@ -163,6 +163,12 @@ Objetivo:
 
 ## PWA funcional v2.0
 
+Deploy móvil/demo público:
+
+```text
+https://kvalerosor.github.io/Trainning_planner_garmin/
+```
+
 ```text
 app.html
 styles.css
