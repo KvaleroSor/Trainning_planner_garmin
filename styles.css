@@ -256,3 +256,80 @@ body {
 .modal-workout{box-shadow:0 12px 28px rgba(36,48,66,.06)}
 .inline-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:900px){.compact-day-hint{order:-1}.day-modal{border-radius:26px;padding:18px}.inline-actions{justify-content:flex-start}}
+
+/* v1.9 responsive depth system */
+:root{
+  --shadow-xs:0 2px 8px rgba(36,48,66,.045);
+  --shadow-sm:0 8px 22px rgba(36,48,66,.075);
+  --shadow-md:0 18px 46px rgba(36,48,66,.105);
+  --shadow-lg:0 34px 90px rgba(36,48,66,.20);
+}
+.panel,
+.login-card,
+.today-card,
+.detail-card,
+.app-nav,
+.day,
+.metric,
+.zone,
+.athlete-card,
+.selected-workout,
+.ai-card,
+.garmin-score,
+.history-row,
+.alert,
+.micro-day,
+.template-chip,
+.btn,
+.tab,
+.nav-item,
+.day-modal,
+.modal-workout{
+  box-shadow:var(--shadow-sm);
+}
+.panel:hover,
+.day:hover,
+.micro-day:hover,
+.athlete-card:hover,
+.template-chip:hover,
+.btn:hover,
+.nav-item:hover,
+.tab:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-md);
+}
+.btn,.tab,.nav-item,.template-chip,.micro-day,.athlete-card,.day,.panel{transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease}
+.day-modal{box-shadow:var(--shadow-lg)}
+.calendar{grid-template-columns:repeat(7,minmax(132px,1fr));overflow-x:auto;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:#d9c7ff transparent}
+.calendar::-webkit-scrollbar{height:8px}.calendar::-webkit-scrollbar-thumb{background:#d9c7ff;border-radius:99px}.calendar::-webkit-scrollbar-track{background:transparent}
+.calendar .dow{position:sticky;top:0;z-index:1;min-width:132px}
+.day{min-width:132px}
+.topbar{gap:14px}.topbar .actions{flex-wrap:wrap;justify-content:flex-end}.app-nav{position:sticky;top:10px;z-index:20}
+@media(max-width:1100px){
+  .main-grid{grid-template-columns:1fr}
+  .calendar{grid-template-columns:repeat(7,minmax(150px,1fr))}
+  .day{min-height:128px;min-width:150px}
+  .today-card{position:relative;top:auto}
+}
+@media(max-width:760px){
+  body{padding:12px}
+  .app-shell{padding:0}
+  .topbar{align-items:flex-start}.topbar .actions{width:100%;justify-content:stretch}.topbar .actions>*{flex:1 1 44%}
+  .app-nav{top:8px;border-radius:24px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .nav-item{padding:12px 10px}
+  .calendar{grid-template-columns:repeat(7,minmax(172px,1fr));gap:10px}
+  .day{min-height:122px;min-width:172px;border-radius:22px}
+  .microcycle{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .micro-day{min-height:92px}
+  .panel,.today-card,.detail-card{border-radius:24px;padding:16px}
+  .day-modal{width:100%;max-height:88vh;border-radius:24px;padding:16px}
+  .modal-workout{grid-template-columns:1fr}.inline-actions{justify-content:flex-start}
+  .mini-metrics{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:420px){
+  .app-nav{grid-template-columns:1fr}
+  .calendar{grid-template-columns:repeat(7,minmax(155px,1fr))}
+  .day{min-width:155px}
+  .microcycle{grid-template-columns:1fr}
+  .today-strip{grid-template-columns:1fr 1fr}
+}

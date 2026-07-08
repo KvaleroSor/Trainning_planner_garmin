@@ -161,7 +161,7 @@ Objetivo:
 - resumen semanal,
 - idea de Garmin conectado/simulado.
 
-## PWA funcional v1.8
+## PWA funcional v1.9
 
 ```text
 app.html
@@ -207,7 +207,9 @@ Incluye:
 - calendario sin scrollbars internas en los días: tarjetas más anchas, texto con puntos suspensivos,
 - modal popup de detalle al pulsar un día concreto del calendario o microciclo,
 - panel lateral de “Día seleccionado” eliminado del dashboard para evitar redundancia,
-- botón “Ver detalle del día” en Panel Hoy y tarjeta compacta de acceso rápido.
+- botón “Ver detalle del día” en Panel Hoy y tarjeta compacta de acceso rápido,
+- responsive v1.9: calendario horizontal cómodo en móvil/tablet, menú compacto y modal adaptado,
+- sistema de sombras suaves en paneles, tarjetas, días, botones y modales para dar profundidad sin oscurecer la estética pastel.
 
 Notas:
 
