@@ -46,6 +46,12 @@ Rutas iniciales:
 
 La demo estática pública sigue en `main`/GitHub Pages mientras la base real se trabaja en esta rama para no romper feedback móvil.
 
+Feedback de entrenador recogido en:
+
+```text
+docs/coach-feedback-2026-07.md
+```
+
 
 ## Nombre provisional
 
