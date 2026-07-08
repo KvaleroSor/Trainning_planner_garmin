@@ -161,7 +161,7 @@ function renderLogin(){
   app.innerHTML = `
     <section class="login-wrap">
       <div class="login-card">
-        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v2.3 · login local demo</span></div></div>
+        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v2.4 · login local demo</span></div></div>
         <h1 style="margin-top:22px">Entrena con contexto.</h1>
         <p class="lead">Calendario, perfil físico, Garmin demo, vista atleta, vista mister y planificación semanal asistida por IA.</p>
         <form class="form" id="loginForm">
@@ -239,7 +239,7 @@ function renderCoachDashboard(athlete){
 
 function renderCoachRoster(){
   return `<section class="panel"><div class="panel-title"><h2>Atletas</h2><span class="pill">${state.athletes.length} activos</span></div><div class="coach-list coach-roster">
-    ${state.athletes.map(a => { const s=summaryForAthlete(a.id); return `<button class="athlete-card coach-athlete ${state.selectedAthleteId===a.id?'active':''}" data-athlete="${a.id}"><span><b>${escapeHtml(a.name)}</b><br><span class="muted">${SPORTS[a.sport]?.label || a.sport} · ${escapeHtml(a.objective)}</span></span><span class="coach-card-metrics"><em>${a.weeklyHours}h/sem</em><em>${s.consistency}% cumpl.</em><em>${s.pending} pend.</em></span></button>`; }).join('')}
+    ${state.athletes.map(a => { const s=summaryForAthlete(a.id); return `<button class="athlete-card coach-athlete ${state.selectedAthleteId===a.id?'active':''}" data-athlete="${a.id}"><span class="coach-athlete-main"><b>${escapeHtml(a.name)}</b><span class="coach-athlete-sport">${SPORTS[a.sport]?.label || a.sport}</span><span class="coach-athlete-goal">${escapeHtml(a.objective)}</span></span><span class="coach-card-metrics"><em>${a.weeklyHours}h/sem</em><em>${s.consistency}% cumpl.</em><em>${s.pending} pend.</em></span></button>`; }).join('')}
   </div></section>`;
 }
 
