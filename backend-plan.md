@@ -85,14 +85,23 @@ Regla práctica: ocultar botones en frontend ayuda a UX, pero **la seguridad rea
 Fase 1:
 
 ```text
-Importación manual .fit/.tcx/.gpx/.csv
+Conexión demo local + importación manual .fit/.tcx/.gpx/.csv
 ```
 
 Fase 2:
 
 ```text
-Garmin Activity API oficial
+OAuth/consentimiento + Garmin Health API / Activity API oficial
 ```
+
+Notas de seguridad:
+
+- El usuario debe autorizar explícitamente la conexión.
+- Guardar tokens cifrados y nunca en localStorage.
+- Permitir desconectar Garmin y borrar datos importados.
+- Separar actividad real (`GarminActivity`) de entrenamiento planificado (`Workout`).
+- El mister solo ve Garmin de atletas vinculados y con consentimiento activo.
+
 
 ### IA
 

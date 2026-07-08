@@ -56,11 +56,11 @@ const DEFAULT_STATE = {
   athletes: [
     {
       id: 'k', name: 'K', sport: 'cycling', level: 'Intermedio', objective: 'Mejorar FTP y fondo', availability: 'Mar, Jue, Sáb, Dom',
-      ftp: 240, maxHr: 184, thresholdHr: 168, weeklyHours: 6, fatigue: 5, pain: 'Sin molestias',
+      ftp: 240, maxHr: 184, thresholdHr: 168, weeklyHours: 6, fatigue: 5, weight: 74, height: 178, restingHr: 48, pain: 'Sin molestias', garminConnected: false,
     },
     {
       id: 'fran', name: 'Fran', sport: 'running', level: 'Principiante', objective: 'Preparar 10K', availability: 'Lun, Mié, Vie',
-      ftp: 0, maxHr: 190, thresholdHr: 172, weeklyHours: 4, fatigue: 4, pain: 'Sin molestias',
+      ftp: 0, maxHr: 190, thresholdHr: 172, weeklyHours: 4, fatigue: 4, weight: 70, height: 175, restingHr: 52, pain: 'Sin molestias', garminConnected: false,
     }
   ],
   workouts: [
@@ -161,7 +161,7 @@ function renderLogin(){
   app.innerHTML = `
     <section class="login-wrap">
       <div class="login-card">
-        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v2.0 · login local demo</span></div></div>
+        <div class="brand"><span class="logo">TP</span><div>Training Planner<br><span class="small">PWA v2.1 · login local demo</span></div></div>
         <h1 style="margin-top:22px">Entrena con contexto.</h1>
         <p class="lead">Calendario, perfil físico, Garmin demo, vista atleta, vista mister y planificación semanal asistida por IA.</p>
         <form class="form" id="loginForm">
@@ -256,7 +256,7 @@ function renderStatsPage(athlete){
 }
 
 function renderAnalysisPage(athlete){
-  return `<section class="main-grid"><div class="grid">${renderGarminAnalysis(athlete, state.role==='coach')}</div><aside class="grid">${renderWeeklyHistory(state.role==='coach')} ${renderFeedbackForm(true)}</aside></section>`;
+  return `<section class="main-grid"><div class="grid">${renderGarminConnect(athlete)}${renderGarminAnalysis(athlete, state.role==='coach')}</div><aside class="grid">${renderWeeklyHistory(state.role==='coach')} ${renderFeedbackForm(true)}</aside></section>`;
 }
 
 function selectedDayWorkload(){
@@ -341,7 +341,7 @@ function renderCalendar(){
   return `<section class="panel"><div class="panel-title"><h2>Julio 2026</h2><div class="tabs"><button class="tab ${state.calendarMode==='month'?'active':''}" data-calendar-mode="month">Mes</button><button class="tab ${state.calendarMode==='week'?'active':''}" data-calendar-mode="week">Semana</button><span class="pill">${escapeHtml(currentAthlete().name)}</span></div></div>
     <div class="calendar">
       ${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d=>`<div class="dow">${d}</div>`).join('')}
-      ${days.map(day => `<article class="day ${state.selectedDay===day?'active':''}" data-day="${day}"><strong>${day}</strong>${workoutsFor(day).map(w => `<button class="workout ${sportClass(w.sport)}" data-workout="${w.id}">${escapeHtml(w.title)} · ${w.duration}'<br><span>${statusLabel(w.status)} · ${escapeHtml(w.intensity)}</span></button>`).join('')}</article>`).join('')}
+      ${days.map(day => { const dayWs = workoutsFor(day); return `<article class="day ${state.selectedDay===day?'active':''} ${dayWs.length?'has-workouts':''}" data-day="${day}"><strong>${day}</strong><span class="day-mobile-summary">${dayWs.length ? `${dayWs.length} sesión(es) · ${dayWs.reduce((a,w)=>a+Number(w.duration||0),0)} min` : 'Libre'}</span>${dayWs.map(w => `<button class="workout ${sportClass(w.sport)}" data-workout="${w.id}">${escapeHtml(w.title)} · ${w.duration}'<br><span>${statusLabel(w.status)} · ${escapeHtml(w.intensity)}</span></button>`).join('')}</article>`; }).join('')}
     </div></section>`;
 }
 
@@ -392,7 +392,7 @@ function renderWeeklyHistory(coach=false){
 
 function renderMetrics(){
   const s = weekSummary();
-  return `<section class="panel metric-grid"><article class="metric"><span>Planificado</span><strong>${formatMinutes(s.planned)}</strong></article><article class="metric"><span>Realizado</span><strong>${formatMinutes(s.done)}</strong></article><article class="metric"><span>Consistencia</span><strong>${s.consistency}%</strong></article><article class="metric"><span>Fatiga</span><strong>${currentAthlete().fatigue}/10</strong></article></section>`;
+  return `<section class="panel metric-grid"><article class="metric"><span>Planificado</span><strong>${formatMinutes(s.planned)}</strong></article><article class="metric"><span>Realizado</span><strong>${formatMinutes(s.done)}</strong></article><article class="metric"><span>Consistencia</span><strong>${s.consistency}%</strong></article><article class="metric"><span>Fatiga</span><strong>${currentAthlete().fatigue}/10</strong></article><article class="metric"><span>Peso</span><strong>${currentAthlete().weight || '—'} kg</strong></article><article class="metric"><span>FC reposo</span><strong>${currentAthlete().restingHr || '—'}</strong></article></section>`;
 }
 
 function renderProfile(a){
@@ -402,6 +402,8 @@ function renderProfile(a){
       <label>Objetivo<input name="objective" value="${escapeHtml(a.objective)}" /></label>
       <div class="form-row"><label>FTP / métrica umbral<input name="ftp" type="number" value="${a.ftp || 0}" /></label><label>FC máx<input name="maxHr" type="number" value="${a.maxHr || 0}" /></label></div>
       <div class="form-row"><label>FC umbral<input name="thresholdHr" type="number" value="${a.thresholdHr || 0}" /></label><label>Horas semana<input name="weeklyHours" type="number" value="${a.weeklyHours || 0}" /></label></div>
+      <div class="form-row"><label>Peso kg<input name="weight" type="number" step="0.1" value="${a.weight || 0}" /></label><label>Altura cm<input name="height" type="number" value="${a.height || 0}" /></label></div>
+      <label>FC reposo<input name="restingHr" type="number" value="${a.restingHr || 0}" /></label>
       <label>Días disponibles<input name="availability" value="${escapeHtml(a.availability)}" /></label>
       <div class="form-row"><label>Fatiga 1-10<input name="fatigue" type="number" min="1" max="10" value="${a.fatigue || 5}" /></label><label>Molestias<input name="pain" value="${escapeHtml(a.pain)}" /></label></div>
       <button class="btn primary" type="submit">Guardar perfil</button>
@@ -441,6 +443,10 @@ function renderWorkoutForm(){
   </section>`;
 }
 
+function renderGarminConnect(a){
+  return `<section class="panel garmin-connect"><div class="panel-title"><h2>Conexión Garmin</h2><span class="pill">${a.garminConnected ? 'Conectado demo' : 'Pendiente'}</span></div><p class="lead">Conecta Garmin para importar actividades, comparar plan vs real y alimentar las recomendaciones del mister.</p><div class="garmin-connect-row"><button class="btn primary" id="connectGarmin">${a.garminConnected ? 'Reconectar Garmin demo' : 'Conectar Garmin demo'}</button><span>${a.garminConnected ? 'Última sincronización demo: hoy · 1 actividad importada.' : 'Demo local: no abre OAuth real todavía.'}</span></div><p class="small">Producción: usar Garmin Health/API oficial, OAuth, consentimiento explícito y almacenamiento seguro.</p></section>`;
+}
+
 function renderGarminAnalysis(a, coach=false){
   const g = state.garminActivities.find(x => x.athleteId === a.id);
   if(!g) return `<section class="panel"><div class="panel-title"><h2>Garmin</h2></div><p class="lead">Sin actividad Garmin demo para este atleta.</p></section>`;
@@ -470,7 +476,7 @@ function bindCommon(){
   document.querySelectorAll('[data-open-day]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.selectedDay=Number(b.dataset.openDay); state.modalDay=Number(b.dataset.openDay); save(); render(); }));
   document.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', e => { if(e.target.dataset.closeModal || e.currentTarget.dataset.closeModal){ state.modalDay=null; save(); render(); } }));
   document.querySelectorAll('[data-athlete]').forEach(b => b.addEventListener('click',()=>{ state.selectedAthleteId=b.dataset.athlete; save(); render(); }));
-  document.querySelector('#profileForm')?.addEventListener('submit', e => { e.preventDefault(); const a=currentAthlete(); const f=new FormData(e.currentTarget); ['sport','level','objective','availability','pain'].forEach(k=>a[k]=f.get(k)); ['ftp','maxHr','thresholdHr','weeklyHours','fatigue'].forEach(k=>a[k]=Number(f.get(k)||0)); save(); render(); });
+  document.querySelector('#profileForm')?.addEventListener('submit', e => { e.preventDefault(); const a=currentAthlete(); const f=new FormData(e.currentTarget); ['sport','level','objective','availability','pain'].forEach(k=>a[k]=f.get(k)); ['ftp','maxHr','thresholdHr','weeklyHours','fatigue','weight','height','restingHr'].forEach(k=>a[k]=Number(f.get(k)||0)); save(); render(); });
   document.querySelector('#feedbackForm')?.addEventListener('submit', e => { e.preventDefault(); const f=new FormData(e.currentTarget); state.feedback[feedbackKey()]={ rpe:Number(f.get('rpe')||5), fatigue:Number(f.get('fatigue')||5), sleep:Number(f.get('sleep')||7), pain:f.get('pain') || 'No', comment:f.get('comment') || '' }; currentAthlete().fatigue=Number(f.get('fatigue')||currentAthlete().fatigue||5); save(); render(); });
   document.querySelector('#workoutForm')?.addEventListener('submit', e => {
     e.preventDefault();
@@ -493,12 +499,23 @@ function bindCommon(){
   document.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); state.workouts=state.workouts.filter(w=>w.id!==b.dataset.delete); save(); render(); }));
   document.querySelector('#verifyCoachDemo')?.addEventListener('click', () => { state.coachVerified=true; state.role='coach'; state.page='dashboard'; save(); render(); });
   document.querySelector('#addAthleteForm')?.addEventListener('submit', addAthleteFromForm);
+  document.querySelector('#connectGarmin')?.addEventListener('click', connectGarminDemo);
   document.querySelector('#generateWeek')?.addEventListener('click', generateWeekDemo);
   document.querySelector('#duplicateWeek')?.addEventListener('click', duplicateCurrentWeek);
   document.querySelector('#applyBaseWeek')?.addEventListener('click', applyBaseWeek);
   document.querySelector('#clearWeek')?.addEventListener('click', clearPlannedWeek);
 }
 
+
+function connectGarminDemo(){
+  const a = currentAthlete();
+  a.garminConnected = true;
+  if(!state.garminActivities.some(g => g.athleteId === a.id)){
+    state.garminActivities.push({ id: uid(), athleteId: a.id, day: state.selectedDay, sport: a.sport, duration: 48, distance: a.sport === 'running' ? 8.4 : 24.5, elevation: 120, avgPower: a.sport === 'cycling' ? 165 : 0, np: a.sport === 'cycling' ? 178 : 0, avgHr: 142, maxHr: 166, cadence: 84, zones: { Z1: 8, Z2: 28, Z3: 10, Z4: 2 }, rpe: 5 });
+    state.workouts.push({ id: uid(), athleteId: a.id, day: state.selectedDay, sport: a.sport, title: 'Garmin · actividad sincronizada', duration: 48, intensity: 'Z2/Z3', status: 'imported', source: 'garmin' });
+  }
+  save(); render();
+}
 
 function duplicateCurrentWeek(){
   const a=currentAthlete();
@@ -525,7 +542,7 @@ function addAthleteFromForm(e){
   const sport = data.get('sport') || 'cycling';
   const id = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,18) || uid();
   const finalId = state.athletes.some(a=>a.id===id) ? `${id}-${uid().slice(0,3)}` : id;
-  state.athletes.push({ id: finalId, name, sport, level: 'Nuevo', objective: String(data.get('objective') || 'Objetivo pendiente'), availability: String(data.get('availability') || 'Por definir'), ftp: 0, maxHr: 185, thresholdHr: 165, weeklyHours: Number(data.get('weeklyHours') || 4), fatigue: 4, pain: 'Sin molestias' });
+  state.athletes.push({ id: finalId, name, sport, level: 'Nuevo', objective: String(data.get('objective') || 'Objetivo pendiente'), availability: String(data.get('availability') || 'Por definir'), ftp: 0, maxHr: 185, thresholdHr: 165, weeklyHours: Number(data.get('weeklyHours') || 4), fatigue: 4, weight: 0, height: 0, restingHr: 0, pain: 'Sin molestias', garminConnected: false });
   state.selectedAthleteId = finalId;
   state.selectedDay = 1;
   state.modalDay = null;

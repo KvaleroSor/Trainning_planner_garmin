@@ -161,7 +161,7 @@ Objetivo:
 - resumen semanal,
 - idea de Garmin conectado/simulado.
 
-## PWA funcional v2.0
+## PWA funcional v2.1
 
 Deploy móvil/demo público:
 
@@ -218,7 +218,11 @@ Incluye:
 - sistema de sombras suaves en paneles, tarjetas, días, botones y modales para dar profundidad sin oscurecer la estética pastel,
 - centro de mando Mister con selección de atletas, métricas por atleta y acciones rápidas de semana,
 - alta rápida de atletas desde la vista Mister,
-- guardia demo de acceso Mister con explicación del modelo real de verificación server-side.
+- guardia demo de acceso Mister con explicación del modelo real de verificación server-side,
+- landing page pública con CTA hacia login,
+- calendario móvil vertical sin scroll horizontal, con días más anchos que altos e indicadores sutiles de actividad,
+- estadísticas personales ampliadas/editables: peso, altura y FC reposo,
+- panel “Conexión Garmin” con conexión demo y nota de integración OAuth/API real.
 
 Notas:
 

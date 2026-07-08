@@ -3,18 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="refresh" content="0; url=./app.html?v=31" />
-  <title>Training Planner · redirigiendo</title>
+  <title>Training Planner · Garmin-ready coaching</title>
+  <meta name="theme-color" content="#fffdf8" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#fffdf8;color:#243042}
-    a{color:#2563eb;font-weight:800}
+    :root{--cream:#fffdf8;--ink:#243042;--muted:#738093;--line:rgba(86,78,68,.16);--blue:#b9dcff;--mint:#bff0d7;--rose:#ffc7d7;--butter:#ffe38f;--lilac:#d9c7ff;--shadow:0 24px 70px rgba(36,48,66,.12)}
+    *{box-sizing:border-box} body{margin:0;font-family:'DM Sans',system-ui,-apple-system,Segoe UI,sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden} a{text-decoration:none;color:inherit}
+    .shell{width:min(1120px,calc(100% - 32px));margin:0 auto}.nav{display:flex;justify-content:space-between;align-items:center;padding:22px 0}.brand{display:flex;gap:12px;align-items:center;font-weight:900}.logo{width:42px;height:42px;border-radius:15px;background:var(--butter);display:grid;place-items:center;box-shadow:0 12px 30px rgba(220,175,70,.22)}.nav a{font-weight:800}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:14px 20px;background:#fff;font-weight:900;box-shadow:0 10px 26px rgba(36,48,66,.08)}.btn.primary{background:var(--blue)}
+    .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center;padding:54px 0 34px}.eyebrow{display:inline-flex;background:#fff;border:1px dashed var(--line);border-radius:999px;padding:9px 13px;font-weight:900;color:#536273}.hero h1{font-size:clamp(3rem,8vw,6.8rem);line-height:.9;letter-spacing:-.07em;margin:18px 0 20px}.lead{font-size:clamp(1.08rem,2vw,1.35rem);line-height:1.5;color:var(--muted);max-width:680px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}.mock{position:relative;background:#fff;border:1px solid var(--line);border-radius:38px;padding:18px;box-shadow:var(--shadow)}.phone{border-radius:30px;background:linear-gradient(180deg,#fff,#fff8ed);border:1px solid var(--line);padding:18px;min-height:520px}.topcard{background:var(--blue);border-radius:26px;padding:18px;box-shadow:0 12px 30px rgba(36,48,66,.09)}.week{display:grid;gap:10px;margin-top:14px}.day{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:20px;padding:13px 14px;box-shadow:0 8px 18px rgba(36,48,66,.06)}.day:nth-child(2){background:var(--mint)}.day:nth-child(3){background:var(--rose)}.tag{font-weight:900;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 9px;font-size:.8rem}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:26px 0 54px}.card{background:#fff;border:1px solid var(--line);border-radius:30px;padding:22px;box-shadow:0 18px 44px rgba(36,48,66,.08)}.card:nth-child(2){background:#fff9d7}.card:nth-child(3){background:#f0eaff}.card h3{font-size:1.3rem;margin:0 0 8px}.card p{color:var(--muted);line-height:1.45;margin:0}.strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.pill{background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 12px;font-weight:800;color:#536273}
+    @media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:24px}.mock{order:-1}.phone{min-height:auto}.cards{grid-template-columns:1fr}.nav{align-items:flex-start}.hero h1{font-size:clamp(3.2rem,16vw,5.4rem)}.btn{width:100%}.actions{display:grid}.mock{margin-top:4px}}
   </style>
 </head>
 <body>
-  <main>
-    <h1>Training Planner</h1>
-    <p>Redirigiendo a la PWA… <a href="./app.html?v=31">Abrir ahora</a></p>
+  <nav class="shell nav"><div class="brand"><span class="logo">TP</span><span>Training Planner</span></div><a class="btn" href="./app.html?v=32">Entrar</a></nav>
+  <main class="shell hero">
+    <section>
+      <span class="eyebrow">Planifica · sincroniza · ajusta</span>
+      <h1>Entrena con contexto, no con ruido.</h1>
+      <p class="lead">Una PWA multisport para atletas y misteres: calendario claro, semanas editables, análisis Garmin y decisiones de carga sin convertirlo todo en una hoja de cálculo con zapatillas.</p>
+      <div class="actions"><a class="btn primary" href="./app.html?v=32">Ir al login</a><a class="btn" href="#features">Ver qué hace</a></div>
+      <div class="strip"><span class="pill">Garmin-ready</span><span class="pill">Vista atleta</span><span class="pill">Mister verificado</span><span class="pill">Pastel, no neón</span></div>
+    </section>
+    <section class="mock" aria-label="Vista previa móvil"><div class="phone"><div class="topcard"><b>Panel Hoy</b><h2>Bici Z2 · 90 min</h2><p>RPE 6 · Fatiga 5/10 · Sueño 7/10</p></div><div class="week"><div class="day"><b>Lun 1</b><span class="tag">60 min</span></div><div class="day"><b>Mié 3</b><span class="tag">Garmin</span></div><div class="day"><b>Vie 5</b><span class="tag">Fuerza</span></div><div class="day"><b>Dom 7</b><span class="tag">Libre</span></div></div></div></section>
   </main>
-  <script>location.replace('./app.html?v=31');</script>
+  <section id="features" class="shell cards"><article class="card"><h3>Calendario legible</h3><p>Mes y semana con días que indican actividad de forma sutil y detalle en popup.</p></article><article class="card"><h3>Mister sin colados</h3><p>Vista coach con verificación demo y modelo real server-side documentado.</p></article><article class="card"><h3>Garmin y análisis</h3><p>Conexión demo para comparar plan vs real y alimentar decisiones de carga.</p></article></section>
 </body>
 </html>
