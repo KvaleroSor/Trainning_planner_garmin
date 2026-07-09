@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   });
 
   if (!athlete) {
-    return <main className="shell py-6 md:py-10"><AppHeader eyebrow="Dashboard" /><div className="panel p-6">Ejecuta <code>npm run db:seed</code> para cargar datos demo.</div></main>;
+    return <main className="shell py-6 md:py-10"><AppHeader eyebrow="Dashboard" active="dashboard" /><div className="panel p-6">Ejecuta <code>npm run db:seed</code> para cargar datos demo.</div></main>;
   }
 
   const summary = summarizeWeeklyLoad(
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="shell py-6 md:py-10">
-      <AppHeader eyebrow="Dashboard" />
+      <AppHeader eyebrow="Dashboard" active="dashboard" />
 
       <section className="panel mb-5 p-5 md:p-7">
         <span className="pill">Resumen general</span>

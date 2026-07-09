@@ -72,6 +72,7 @@ async function main() {
   });
 
   const baseDate = new Date('2026-07-01T08:00:00.000Z');
+  await prisma.garminActivity.deleteMany({ where: { athleteId: athleteUser.athleteProfile.id } });
   await prisma.workout.deleteMany({ where: { athleteId: athleteUser.athleteProfile.id } });
   await prisma.workout.createMany({
     data: [
@@ -106,6 +107,42 @@ async function main() {
         intensity: 'RPE 6',
         status: WorkoutStatus.PLANNED,
         source: WorkoutSource.TEMPLATE,
+      },
+    ],
+  });
+
+  const importedWorkout = await prisma.workout.findFirstOrThrow({
+    where: { athleteId: athleteUser.athleteProfile.id, title: 'Bici Z2' },
+  });
+  const completedWorkout = await prisma.workout.findFirstOrThrow({
+    where: { athleteId: athleteUser.athleteProfile.id, title: 'Z2 resistencia' },
+  });
+
+  await prisma.garminActivity.createMany({
+    data: [
+      {
+        athleteId: athleteUser.athleteProfile.id,
+        workoutId: completedWorkout.id,
+        providerActivityId: 'demo-garmin-z2-resistance',
+        sport: SportType.CYCLING,
+        startedAt: completedWorkout.date,
+        durationMinutes: 60,
+        distanceMeters: 28500,
+        avgHr: 143,
+        avgPower: 185,
+        rawSummary: { cadence: 86, fastestKmSeconds: null, maxPower: 420, splits: [15, 15, 15, 15] },
+      },
+      {
+        athleteId: athleteUser.athleteProfile.id,
+        workoutId: importedWorkout.id,
+        providerActivityId: 'demo-garmin-bici-z2',
+        sport: SportType.CYCLING,
+        startedAt: importedWorkout.date,
+        durationMinutes: 102,
+        distanceMeters: 42000,
+        avgHr: 151,
+        avgPower: 212,
+        rawSummary: { cadence: 89, maxPower: 540, splits: [24, 26, 25, 27], routePreview: 'demo-route-polyline' },
       },
     ],
   });

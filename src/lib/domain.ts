@@ -110,3 +110,115 @@ export function buildCoachRoster(athletes: RosterAthleteInput[]): CoachRosterAth
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 }
+
+export type PlanVsActualInput = {
+  title: string;
+  plannedMinutes: number;
+  actualMinutes: number;
+  avgHr?: number | null;
+  avgPower?: number | null;
+  distanceMeters?: number | null;
+};
+
+export type PlanVsActualSignal = 'under' | 'on-track' | 'over';
+
+export type PlanVsActualSummary = {
+  title: string;
+  plannedMinutes: number;
+  actualMinutes: number;
+  deltaMinutes: number;
+  compliance: number;
+  signal: PlanVsActualSignal;
+  coachCopy: string;
+  athleteCopy: string;
+  metrics: string[];
+};
+
+export function analyzePlanVsActual(input: PlanVsActualInput): PlanVsActualSummary {
+  const deltaMinutes = input.actualMinutes - input.plannedMinutes;
+  const compliance = input.plannedMinutes === 0 ? 0 : Math.round((input.actualMinutes / input.plannedMinutes) * 100);
+  const signal: PlanVsActualSignal = compliance < 90 ? 'under' : compliance > 110 ? 'over' : 'on-track';
+  const absDelta = Math.abs(deltaMinutes);
+  const directionCopy = deltaMinutes >= 0 ? 'por encima del plan' : 'por debajo del plan';
+
+  const metrics = [
+    input.distanceMeters ? `${(input.distanceMeters / 1000).toFixed(1)} km` : null,
+    input.avgHr ? `${input.avgHr} ppm` : null,
+    input.avgPower ? `${input.avgPower} W` : null,
+  ].filter((metric): metric is string => Boolean(metric));
+
+  return {
+    title: input.title,
+    plannedMinutes: input.plannedMinutes,
+    actualMinutes: input.actualMinutes,
+    deltaMinutes,
+    compliance,
+    signal,
+    coachCopy: signal === 'on-track'
+      ? `${input.title} quedó dentro del rango previsto; buen cumplimiento del plan.`
+      : `${input.title} se fue ${absDelta} min ${directionCopy}; revisar fatiga y si el extra fue intencional.`,
+    athleteCopy: signal === 'on-track'
+      ? 'Sesión ajustada a lo previsto. Buena ejecución.'
+      : deltaMinutes > 0
+        ? `Te pasaste ${absDelta} min sobre lo previsto. Compensa si notas carga alta.`
+        : `Te quedaste ${absDelta} min por debajo de lo previsto. Anota el motivo para tu mister.`,
+    metrics,
+  };
+}
+
+export type PersonalRecordActivityInput = {
+  sport: string;
+  distanceMeters?: number | null;
+  durationSeconds: number;
+  fastestKmSeconds?: number | null;
+  avgPower?: number | null;
+  maxPower?: number | null;
+};
+
+export type PersonalRecord = {
+  label: string;
+  value: string;
+  sport: string;
+};
+
+function formatDuration(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
+export function findPersonalRecords(activities: PersonalRecordActivityInput[]): PersonalRecord[] {
+  const records: PersonalRecord[] = [];
+  const running = activities.filter(activity => activity.sport === 'RUNNING');
+  const cycling = activities.filter(activity => activity.sport === 'CYCLING');
+
+  const fastestKm = running
+    .filter(activity => activity.fastestKmSeconds)
+    .sort((a, b) => (a.fastestKmSeconds ?? Infinity) - (b.fastestKmSeconds ?? Infinity))[0];
+  if (fastestKm?.fastestKmSeconds) {
+    records.push({ label: 'Km más rápido', value: `${formatDuration(fastestKm.fastestKmSeconds)}/km`, sport: 'RUNNING' });
+  }
+
+  for (const [label, meters] of [['5K', 5000], ['10K', 10000]] as const) {
+    const best = running
+      .filter(activity => (activity.distanceMeters ?? 0) >= meters)
+      .sort((a, b) => a.durationSeconds - b.durationSeconds)[0];
+    if (best) records.push({ label, value: formatDuration(best.durationSeconds), sport: 'RUNNING' });
+  }
+
+  const bestAvgPower = cycling
+    .filter(activity => activity.avgPower)
+    .sort((a, b) => (b.avgPower ?? 0) - (a.avgPower ?? 0))[0];
+  if (bestAvgPower?.avgPower) {
+    records.push({ label: 'Mejor potencia media', value: `${bestAvgPower.avgPower} W`, sport: 'CYCLING' });
+  }
+
+  const bestMaxPower = cycling
+    .filter(activity => activity.maxPower)
+    .sort((a, b) => (b.maxPower ?? 0) - (a.maxPower ?? 0))[0];
+  if (bestMaxPower?.maxPower) {
+    records.push({ label: 'Pico potencia', value: `${bestMaxPower.maxPower} W`, sport: 'CYCLING' });
+  }
+
+  return records;
+}

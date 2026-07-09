@@ -71,7 +71,7 @@ export default async function CoachPage() {
 
   return (
     <main className="shell py-6 md:py-10">
-      <AppHeader eyebrow="Mister" />
+      <AppHeader eyebrow="Mister" active="coach" />
 
       <section className="panel mb-5 p-5 md:p-7">
         <span className="pill">Roster de atletas</span>

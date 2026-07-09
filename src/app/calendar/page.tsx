@@ -11,7 +11,7 @@ export default async function CalendarPage() {
 
   return (
     <main className="shell py-6 md:py-10">
-      <AppHeader eyebrow="Calendario" />
+      <AppHeader eyebrow="Calendario" active="calendar" />
 
       <section className="panel mb-5 p-5 md:p-7">
         <span className="pill">Vista calendario</span>

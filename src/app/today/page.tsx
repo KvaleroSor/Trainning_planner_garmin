@@ -10,7 +10,7 @@ export default async function TodayPage() {
   });
 
   if (!athlete) {
-    return <main className="shell py-6 md:py-10"><AppHeader eyebrow="Hoy" /><section className="panel p-6">Ejecuta <code>npm run db:seed</code>.</section></main>;
+    return <main className="shell py-6 md:py-10"><AppHeader eyebrow="Hoy" active="today" /><section className="panel p-6">Ejecuta <code>npm run db:seed</code>.</section></main>;
   }
 
   const now = new Date();
@@ -28,7 +28,7 @@ export default async function TodayPage() {
 
   return (
     <main className="shell py-6 md:py-10">
-      <AppHeader eyebrow="Entrenamiento de hoy" />
+      <AppHeader eyebrow="Entrenamiento de hoy" active="today" />
 
       <section className="panel mb-5 p-5 md:p-7">
         <span className="pill">Sesión prioritaria</span>

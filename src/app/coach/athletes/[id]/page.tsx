@@ -1,4 +1,5 @@
 import { AppHeader } from '@/components/app-header';
+import { AthleteSubnav } from '@/components/athlete-subnav';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -46,11 +47,8 @@ export default async function AthleteDetailPage({ params }: AthleteDetailPagePro
 
   return (
     <main className="shell py-6 md:py-10">
-      <AppHeader eyebrow="Ficha atleta" />
-
-      <nav className="mb-4">
-        <a className="btn" href="/coach">← Volver al roster</a>
-      </nav>
+      <AppHeader eyebrow="Ficha atleta" active="coach" />
+      <AthleteSubnav athleteId={id} active="overview" />
 
       <section className="panel mb-5 p-5 md:p-7">
         <span className="pill">Seguimiento</span>

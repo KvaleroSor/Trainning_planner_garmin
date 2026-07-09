@@ -3,9 +3,13 @@ import {
   canCoachAccessAthlete,
   summarizeWeeklyLoad,
   buildCoachRoster,
+  analyzePlanVsActual,
+  findPersonalRecords,
   type CoachAccessInput,
   type WorkoutSummaryInput,
   type RosterAthleteInput,
+  type PlanVsActualInput,
+  type PersonalRecordActivityInput,
 } from './domain';
 
 describe('coach access rules', () => {
@@ -115,5 +119,49 @@ describe('coach roster', () => {
     expect(roster[0].name).toBe('Alex');
     expect(roster[0].latestWorkout).toBeNull();
     expect(roster[0].nextWorkout).toBeNull();
+  });
+});
+
+describe('plan vs actual analysis', () => {
+  it('turns Garmin activity into a coach-readable compliance signal', () => {
+    const input: PlanVsActualInput = {
+      title: 'Bici Z2',
+      plannedMinutes: 90,
+      actualMinutes: 102,
+      avgHr: 151,
+      avgPower: 212,
+      distanceMeters: 42000,
+    };
+
+    expect(analyzePlanVsActual(input)).toEqual({
+      title: 'Bici Z2',
+      plannedMinutes: 90,
+      actualMinutes: 102,
+      deltaMinutes: 12,
+      compliance: 113,
+      signal: 'over',
+      coachCopy: 'Bici Z2 se fue 12 min por encima del plan; revisar fatiga y si el extra fue intencional.',
+      athleteCopy: 'Te pasaste 12 min sobre lo previsto. Compensa si notas carga alta.',
+      metrics: ['42.0 km', '151 ppm', '212 W'],
+    });
+  });
+});
+
+describe('personal records', () => {
+  it('extracts fastest kilometer and cycling power records from activities', () => {
+    const activities: PersonalRecordActivityInput[] = [
+      { sport: 'RUNNING', distanceMeters: 5000, durationSeconds: 1500, fastestKmSeconds: 238 },
+      { sport: 'RUNNING', distanceMeters: 10000, durationSeconds: 3100, fastestKmSeconds: 245 },
+      { sport: 'CYCLING', durationSeconds: 3600, avgPower: 215, maxPower: 540 },
+      { sport: 'CYCLING', durationSeconds: 2700, avgPower: 230, maxPower: 520 },
+    ];
+
+    expect(findPersonalRecords(activities)).toEqual([
+      { label: 'Km más rápido', value: '3:58/km', sport: 'RUNNING' },
+      { label: '5K', value: '25:00', sport: 'RUNNING' },
+      { label: '10K', value: '51:40', sport: 'RUNNING' },
+      { label: 'Mejor potencia media', value: '230 W', sport: 'CYCLING' },
+      { label: 'Pico potencia', value: '540 W', sport: 'CYCLING' },
+    ]);
   });
 });
