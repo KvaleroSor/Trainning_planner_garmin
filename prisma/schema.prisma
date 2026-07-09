@@ -77,6 +77,8 @@ model User {
   coachProfile   CoachProfile?
   athleteProfile AthleteProfile?
   auditEvents     AuditLog[] @relation("AuditActor")
+  createdWorkouts Workout[] @relation("WorkoutCreatedBy")
+  updatedWorkouts Workout[] @relation("WorkoutUpdatedBy")
 }
 
 model Account {
@@ -196,10 +198,14 @@ model Workout {
   notes          String?
   status         WorkoutStatus @default(PLANNED)
   source         WorkoutSource @default(MANUAL)
+  createdById    String?
+  updatedById    String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   athlete        AthleteProfile   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  createdBy      User?            @relation("WorkoutCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy      User?            @relation("WorkoutUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   garminActivity GarminActivity?
   analyses       WorkoutAnalysis[]
 }

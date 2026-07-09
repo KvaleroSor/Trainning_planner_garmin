@@ -86,6 +86,8 @@ async function main() {
         intensity: 'Z2',
         status: WorkoutStatus.COMPLETED,
         source: WorkoutSource.TEMPLATE,
+        createdById: coachUser.id,
+        updatedById: coachUser.id,
       },
       {
         athleteId: athleteUser.athleteProfile.id,
@@ -97,6 +99,8 @@ async function main() {
         intensity: 'Z2',
         status: WorkoutStatus.IMPORTED,
         source: WorkoutSource.GARMIN,
+        createdById: athleteUser.id,
+        updatedById: athleteUser.id,
       },
       {
         athleteId: athleteUser.athleteProfile.id,
@@ -107,6 +111,8 @@ async function main() {
         intensity: 'RPE 6',
         status: WorkoutStatus.PLANNED,
         source: WorkoutSource.TEMPLATE,
+        createdById: coachUser.id,
+        updatedById: coachUser.id,
       },
     ],
   });

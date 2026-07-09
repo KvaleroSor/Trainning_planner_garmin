@@ -1,4 +1,5 @@
 import { AppHeader } from '@/components/app-header';
+import { WorkoutCreateForm, WorkoutManagePanel } from '@/components/workout-forms';
 import { requireAthleteProfile } from '@/lib/access';
 import { getMonthWindow, parseCalendarMonth } from '@/lib/domain';
 import { prisma } from '@/lib/prisma';
@@ -60,6 +61,10 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
         </div>
       </section>
 
+      <section className="mb-5">
+        <WorkoutCreateForm athleteId={athlete?.id ?? currentAthlete.id} defaultDate={calendar.startIso} returnTo={`/calendar?month=${calendar.month}`} />
+      </section>
+
       <section className="grid gap-3 md:grid-cols-2 lg:grid-cols-7">
         {calendar.days.map(day => {
           const workouts = workoutsByDate.get(day.iso) ?? [];
@@ -79,6 +84,9 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
                   <div key={workout.id} className="rounded-2xl bg-[color:var(--sky)] px-3 py-2 text-sm font-bold">
                     <span className="block truncate">{workout.title}</span>
                     <span className="text-xs text-[color:var(--muted)]">{workout.sport.toLowerCase()} · {workout.plannedMinutes} min</span>
+                    <div className="mt-2">
+                      <WorkoutManagePanel workout={workout} returnTo={`/calendar?month=${calendar.month}`} />
+                    </div>
                   </div>
                 ))}
               </div>

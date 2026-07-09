@@ -1,5 +1,6 @@
 import { AppHeader } from '@/components/app-header';
 import { AthleteSubnav } from '@/components/athlete-subnav';
+import { WorkoutCreateForm, WorkoutManagePanel } from '@/components/workout-forms';
 import { requireActiveCoachAthleteRelation } from '@/lib/access';
 import { prisma } from '@/lib/prisma';
 
@@ -75,6 +76,14 @@ export default async function AthleteDetailPage({ params }: AthleteDetailPagePro
           </section>
 
           <section className="panel p-5">
+            <h2 className="text-2xl font-black">Crear entrenamiento</h2>
+            <p className="mt-2 text-sm text-[color:var(--muted)]">Acción persistente en backend, auditada y limitada por relación activa Mister-atleta.</p>
+            <div className="mt-4">
+              <WorkoutCreateForm athleteId={athlete.id} defaultDate={new Date().toISOString().slice(0, 10)} returnTo={`/coach/athletes/${id}`} />
+            </div>
+          </section>
+
+          <section className="panel p-5">
             <h2 className="text-2xl font-black">Entrenos recientes/próximos</h2>
             <div className="mt-4 grid gap-3">
               {athlete.workouts.map(workout => (
@@ -87,6 +96,9 @@ export default async function AthleteDetailPage({ params }: AthleteDetailPagePro
                       </p>
                     </div>
                     <span className="pill">{workout.status.toLowerCase()}</span>
+                  </div>
+                  <div className="mt-3">
+                    <WorkoutManagePanel workout={workout} returnTo={`/coach/athletes/${id}`} />
                   </div>
                 </article>
               ))}
