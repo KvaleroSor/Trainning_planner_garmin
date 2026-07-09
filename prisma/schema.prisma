@@ -57,6 +57,7 @@ enum AuditAction {
   WORKOUT_CREATED
   WORKOUT_UPDATED
   WORKOUT_DELETED
+  WORKOUT_FEEDBACK_SUBMITTED
   GARMIN_CONNECTED
   GARMIN_DISCONNECTED
 }
@@ -155,6 +156,7 @@ model AthleteProfile {
   coaches          CoachAthleteRelation[]
   sportProfiles    SportProfile[]
   workouts         Workout[]
+  workoutFeedbacks WorkoutFeedback[]
   garminActivities GarminActivity[]
   weeklyReviews    WeeklyReview[]
 }
@@ -208,6 +210,24 @@ model Workout {
   updatedBy      User?            @relation("WorkoutUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   garminActivity GarminActivity?
   analyses       WorkoutAnalysis[]
+  feedbacks      WorkoutFeedback[]
+}
+
+model WorkoutFeedback {
+  id              String   @id @default(cuid())
+  workoutId       String
+  athleteId       String
+  perceivedEffort Int
+  mood            String
+  painNote        String?
+  comment         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workout Workout        @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  athlete AthleteProfile @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@unique([workoutId, athleteId])
 }
 
 model GarminActivity {

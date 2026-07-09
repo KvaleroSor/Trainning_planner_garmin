@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import type { Route } from 'next';
 import { AppHeader } from '@/components/app-header';
 import { AthleteSubnav } from '@/components/athlete-subnav';
 import { WorkoutCreateForm, WorkoutManagePanel } from '@/components/workout-forms';
@@ -90,7 +92,9 @@ export default async function AthleteDetailPage({ params }: AthleteDetailPagePro
                 <article key={workout.id} className="rounded-3xl border border-[color:var(--line)] bg-white/70 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h3 className="font-black">{workout.title}</h3>
+                      <h3 className="font-black">
+                        <Link className="underline decoration-[color:var(--mint)] decoration-4 underline-offset-4" href={`/workouts/${workout.id}` as Route}>{workout.title}</Link>
+                      </h3>
                       <p className="text-sm text-[color:var(--muted)]">
                         {workout.date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} · {workout.sport.toLowerCase()} · {workout.plannedMinutes} min
                       </p>

@@ -2,27 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireCurrentUser } from '@/lib/access';
+import { parseWorkoutFeedbackFormData } from '@/lib/workout-feedback-input';
+import { requireWorkoutWriteAccess } from '@/lib/workout-access';
 import { prisma } from '@/lib/prisma';
 import { parseWorkoutDeleteIntent, parseWorkoutFormData } from '@/lib/workout-input';
 import type { WorkoutStatus } from '@prisma/client';
-
-async function requireWorkoutWriteAccess(athleteId: string) {
-  const user = await requireCurrentUser();
-
-  if (user.athleteProfile?.id === athleteId) {
-    return { user, actorId: user.id };
-  }
-
-  if (user.role === 'COACH_VERIFIED' && user.coachProfile?.status === 'VERIFIED') {
-    const relation = await prisma.coachAthleteRelation.findFirst({
-      where: { athleteId, coachId: user.coachProfile.id, status: 'ACTIVE' },
-    });
-    if (relation) return { user, actorId: user.id };
-  }
-
-  throw new Error('No tienes permisos para modificar entrenamientos de este atleta.');
-}
 
 function revalidateWorkoutSurfaces(athleteId: string) {
   revalidatePath('/dashboard');
@@ -32,6 +16,7 @@ function revalidateWorkoutSurfaces(athleteId: string) {
   revalidatePath(`/coach/athletes/${athleteId}`);
   revalidatePath(`/coach/athletes/${athleteId}/analysis`);
   revalidatePath(`/coach/athletes/${athleteId}/stats`);
+  revalidatePath('/workouts');
 }
 
 function redirectBack(formData: FormData, fallback: string): never {
@@ -160,5 +145,39 @@ export async function deleteWorkoutAction(formData: FormData) {
   });
 
   revalidateWorkoutSurfaces(existing.athleteId);
+  revalidatePath(`/workouts/${workoutId}`);
   redirectBack(formData, `/calendar?month=${existing.date.toISOString().slice(0, 7)}`);
+}
+
+export async function submitWorkoutFeedbackAction(formData: FormData) {
+  const workoutId = formData.get('workoutId');
+  if (typeof workoutId !== 'string' || !workoutId) throw new Error('Entrenamiento inválido.');
+
+  const existing = await prisma.workout.findUnique({ where: { id: workoutId } });
+  if (!existing) throw new Error('Entrenamiento no encontrado.');
+
+  const { user, actorId, accessRole } = await requireWorkoutWriteAccess(existing.athleteId);
+  if (accessRole !== 'athlete' || user.athleteProfile?.id !== existing.athleteId) {
+    throw new Error('Solo el atleta puede enviar su propio feedback.');
+  }
+
+  const input = parseWorkoutFeedbackFormData(formData);
+  const feedback = await prisma.workoutFeedback.upsert({
+    where: { workoutId_athleteId: { workoutId, athleteId: existing.athleteId } },
+    create: { workoutId, athleteId: existing.athleteId, ...input },
+    update: input,
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId,
+      action: 'WORKOUT_FEEDBACK_SUBMITTED',
+      targetId: workoutId,
+      metadata: { athleteId: existing.athleteId, perceivedEffort: feedback.perceivedEffort, mood: feedback.mood },
+    },
+  });
+
+  revalidateWorkoutSurfaces(existing.athleteId);
+  revalidatePath(`/workouts/${workoutId}`);
+  redirectBack(formData, `/workouts/${workoutId}`);
 }

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import type { Route } from 'next';
 import { AppHeader } from '@/components/app-header';
 import { WorkoutCreateForm, WorkoutManagePanel } from '@/components/workout-forms';
 import { requireAthleteProfile } from '@/lib/access';
@@ -82,8 +84,8 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
                   <p className="text-sm text-[color:var(--muted)]">Sin carga</p>
                 ) : workouts.map(workout => (
                   <div key={workout.id} className="rounded-2xl bg-[color:var(--sky)] px-3 py-2 text-sm font-bold">
-                    <span className="block truncate">{workout.title}</span>
-                    <span className="text-xs text-[color:var(--muted)]">{workout.sport.toLowerCase()} · {workout.plannedMinutes} min</span>
+                    <Link className="mt-1 block underline decoration-[color:var(--mint)] decoration-4 underline-offset-4" href={`/workouts/${workout.id}` as Route}>{workout.title}</Link>
+                    <span className="block text-[11px] uppercase text-[color:var(--muted)]">{workout.sport.toLowerCase()} · {workout.plannedMinutes} min</span>
                     <div className="mt-2">
                       <WorkoutManagePanel workout={workout} returnTo={`/calendar?month=${calendar.month}`} />
                     </div>
