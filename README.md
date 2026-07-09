@@ -1,5 +1,62 @@
 # Proyecto: Training Planner Garmin
 
+## Backend Next.js foundation
+
+Rama de trabajo:
+
+```text
+feat/next-backend-foundation
+```
+
+Stack inicial:
+
+```text
+Next.js App Router + TypeScript + Tailwind CSS
+Prisma + SQLite local / PostgreSQL producción
+Auth.js / NextAuth Credentials preparado
+Vitest para dominio/permisos
+```
+
+Comandos:
+
+```bash
+npm install
+cp .env.example .env
+npx prisma db push
+npm run db:seed
+npm run dev
+```
+
+Verificación:
+
+```bash
+npm run lint
+npm test
+npm run typecheck
+npm run build
+```
+
+Rutas iniciales:
+
+```text
+/           landing pastel premium
+/login      login demo/Auth-ready
+/dashboard  dashboard seed desde Prisma
+```
+
+La demo estática pública sigue en `main`/GitHub Pages mientras la base real se trabaja en esta rama para no romper feedback móvil.
+
+Feedback y arquitectura recogidos en:
+
+```text
+ARCHITECTURE.md
+docs/coach-feedback-2026-07.md
+docs/product-audit-claude-2026-07.md
+```
+
+Importante: la demo estática de GitHub Pages es solo prototipo/review. No debe usarse con datos reales de atletas hasta tener auth server-side, permisos coach-atleta y persistencia backend.
+
+
 ## Nombre provisional
 
 ```text

@@ -1,0 +1,49 @@
+{
+  "name": "training-planner-garmin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 8910",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1 --port 8910",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "latest",
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "latest",
+    "clsx": "latest",
+    "date-fns": "latest",
+    "next": "latest",
+    "next-auth": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "latest",
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@types/bcryptjs": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "jsdom": "latest",
+    "prisma": "^6.19.3",
+    "tailwindcss": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}
