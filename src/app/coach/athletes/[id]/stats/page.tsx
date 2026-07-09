@@ -1,5 +1,6 @@
 import { AppHeader } from '@/components/app-header';
 import { AthleteSubnav } from '@/components/athlete-subnav';
+import { requireActiveCoachAthleteRelation } from '@/lib/access';
 import { findPersonalRecords, type PersonalRecordActivityInput } from '@/lib/domain';
 import { prisma } from '@/lib/prisma';
 
@@ -22,13 +23,10 @@ function parseRawSummary(raw: unknown): RawSummary {
 
 export default async function AthleteStatsPage({ params }: AthleteStatsPageProps) {
   const { id } = await params;
+  const { relation: allowedRelation } = await requireActiveCoachAthleteRelation(id);
 
-  const relation = await prisma.coachAthleteRelation.findFirst({
-    where: {
-      status: 'ACTIVE',
-      athleteId: id,
-      coach: { user: { email: 'coach@trainingplanner.local', role: 'COACH_VERIFIED' } },
-    },
+  const relation = await prisma.coachAthleteRelation.findUnique({
+    where: { id: allowedRelation.id },
     include: {
       athlete: {
         include: {

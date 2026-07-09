@@ -1,16 +1,18 @@
 import { AppHeader } from '@/components/app-header';
+import { requireAthleteProfile } from '@/lib/access';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TodayPage() {
-  const athlete = await prisma.athleteProfile.findFirst({
-    where: { user: { email: 'k@demo.local' } },
+  const { athlete: currentAthlete } = await requireAthleteProfile();
+  const athlete = await prisma.athleteProfile.findUnique({
+    where: { id: currentAthlete.id },
     include: { workouts: { orderBy: { date: 'asc' } } },
   });
 
   if (!athlete) {
-    return <main className="shell py-6 md:py-10"><AppHeader eyebrow="Hoy" active="today" /><section className="panel p-6">Ejecuta <code>npm run db:seed</code>.</section></main>;
+    throw new Error('Authenticated athlete profile missing');
   }
 
   const now = new Date();

@@ -1,25 +1,20 @@
+import { Suspense } from 'react';
+import { LoginForm } from '@/components/login-form';
+
 export default function LoginPage() {
   return (
     <main className="shell grid min-h-screen place-items-center py-8">
       <section className="panel w-full max-w-md p-6 md:p-8">
-        <span className="pill">Login backend preparado</span>
+        <span className="pill">Auth server-side</span>
         <h1 className="mt-4 text-4xl font-black tracking-[-0.04em]">Entrar en Training Planner</h1>
         <p className="mt-3 text-sm leading-6 text-[color:var(--muted)]">
-          La autenticación real ya queda cableada con Auth.js Credentials. Esta pantalla mantiene acceso demo mientras migramos acciones server-side.
+          Login real con Auth.js Credentials. Los roles ya no se deciden por localStorage ni por botones con casco de juguete.
         </p>
-        <form className="mt-6 grid gap-4" action="/dashboard">
-          <label className="grid gap-2 text-sm font-bold">
-            Email
-            <input className="rounded-2xl border border-[color:var(--line)] bg-white/80 px-4 py-3 outline-none" defaultValue="k@demo.local" name="email" type="email" />
-          </label>
-          <label className="grid gap-2 text-sm font-bold">
-            Contraseña
-            <input className="rounded-2xl border border-[color:var(--line)] bg-white/80 px-4 py-3 outline-none" defaultValue="demo1234" name="password" type="password" />
-          </label>
-          <button className="btn btn-primary mt-2" type="submit">Entrar en demo</button>
-        </form>
+        <Suspense fallback={<div className="mt-6 rounded-2xl bg-white/70 p-4 text-sm">Cargando login…</div>}>
+          <LoginForm />
+        </Suspense>
         <p className="mt-5 rounded-2xl bg-[color:var(--butter)]/70 p-4 text-sm text-[color:var(--muted)]">
-          Usuario seed: <b>k@demo.local</b>. Coach seed: <b>coach@trainingplanner.local</b>. Nada sensible todavía, como debe ser.
+          Seeds: <b>k@demo.local</b> / <b>coach@trainingplanner.local</b>. Contraseña: <b>demo1234</b>.
         </p>
       </section>
     </main>

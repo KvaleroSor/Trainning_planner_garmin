@@ -1,4 +1,5 @@
 import { AppHeader } from '@/components/app-header';
+import { requireVerifiedCoach } from '@/lib/access';
 import { prisma } from '@/lib/prisma';
 import { buildCoachRoster } from '@/lib/domain';
 
@@ -14,20 +15,17 @@ const sportTone: Record<string, string> = {
 };
 
 export default async function CoachPage() {
-  const coachUser = await prisma.user.findUnique({
-    where: { email: 'coach@trainingplanner.local' },
+  const { user: coachUser, coach } = await requireVerifiedCoach();
+  const coachProfile = await prisma.coachProfile.findUnique({
+    where: { id: coach.id },
     include: {
-      coachProfile: {
+      athletes: {
+        where: { status: 'ACTIVE' },
         include: {
-          athletes: {
-            where: { status: 'ACTIVE' },
+          athlete: {
             include: {
-              athlete: {
-                include: {
-                  user: true,
-                  workouts: { orderBy: { date: 'asc' } },
-                },
-              },
+              user: true,
+              workouts: { orderBy: { date: 'asc' } },
             },
           },
         },
@@ -35,22 +33,11 @@ export default async function CoachPage() {
     },
   });
 
-  if (!coachUser || coachUser.role !== 'COACH_VERIFIED' || !coachUser.coachProfile) {
-    return (
-      <main className="shell grid min-h-screen place-items-center py-8">
-        <section className="panel w-full max-w-md p-6 md:p-8">
-          <span className="pill">Acceso restringido</span>
-          <h1 className="mt-4 text-3xl font-black tracking-[-0.04em]">Vista Mister</h1>
-          <p className="mt-3 text-sm leading-6 text-[color:var(--muted)]">
-            El acceso al roster de atletas requiere un perfil de Mister verificado.
-            Si crees que deberías tener acceso, contacta con el administrador.
-          </p>
-        </section>
-      </main>
-    );
+  if (!coachProfile) {
+    throw new Error('Verified coach profile missing');
   }
 
-  const rosterAthletes = coachUser.coachProfile.athletes.map(relation => ({
+  const rosterAthletes = coachProfile.athletes.map(relation => ({
     id: relation.athlete.id,
     displayName: relation.athlete.displayName,
     primarySport: relation.athlete.primarySport,

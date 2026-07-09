@@ -1,4 +1,5 @@
 import { AppHeader } from '@/components/app-header';
+import { requireAthleteProfile } from '@/lib/access';
 import { prisma } from '@/lib/prisma';
 import { summarizeWeeklyLoad } from '@/lib/domain';
 
@@ -11,13 +12,14 @@ function minutesLabel(minutes: number) {
 }
 
 export default async function DashboardPage() {
-  const athlete = await prisma.athleteProfile.findFirst({
-    where: { user: { email: 'k@demo.local' } },
+  const { athlete: currentAthlete } = await requireAthleteProfile();
+  const athlete = await prisma.athleteProfile.findUnique({
+    where: { id: currentAthlete.id },
     include: { workouts: { orderBy: { date: 'asc' } }, coaches: { include: { coach: { include: { user: true } } } } },
   });
 
   if (!athlete) {
-    return <main className="shell py-6 md:py-10"><AppHeader eyebrow="Dashboard" active="dashboard" /><div className="panel p-6">Ejecuta <code>npm run db:seed</code> para cargar datos demo.</div></main>;
+    throw new Error('Authenticated athlete profile missing');
   }
 
   const summary = summarizeWeeklyLoad(

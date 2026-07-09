@@ -1,4 +1,5 @@
 import { AppHeader } from '@/components/app-header';
+import { requireAthleteProfile } from '@/lib/access';
 import { getMonthWindow, parseCalendarMonth } from '@/lib/domain';
 import { prisma } from '@/lib/prisma';
 
@@ -13,12 +14,13 @@ function isoDate(date: Date): string {
 }
 
 export default async function CalendarPage({ searchParams }: CalendarPageProps) {
+  const { athlete: currentAthlete } = await requireAthleteProfile();
   const { month: monthQuery } = await searchParams;
   const month = parseCalendarMonth(monthQuery, new Date('2026-07-01T00:00:00.000Z'));
   const calendar = getMonthWindow(month);
 
-  const athlete = await prisma.athleteProfile.findFirst({
-    where: { user: { email: 'k@demo.local' } },
+  const athlete = await prisma.athleteProfile.findUnique({
+    where: { id: currentAthlete.id },
     include: {
       workouts: {
         where: {
