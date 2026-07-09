@@ -1,3 +1,4 @@
+import { AppHeader } from '@/components/app-header';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -41,22 +42,42 @@ export default async function AthleteDetailPage({ params }: AthleteDetailPagePro
   }
 
   const { athlete } = relation;
+  const nextWorkout = athlete.workouts.find(workout => workout.status === 'PLANNED') ?? athlete.workouts[0];
 
   return (
     <main className="shell py-6 md:py-10">
-      <nav className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <AppHeader eyebrow="Ficha atleta" />
+
+      <nav className="mb-4">
         <a className="btn" href="/coach">← Volver al roster</a>
-        <span className="pill">Ficha atleta</span>
       </nav>
 
       <section className="panel mb-5 p-5 md:p-7">
-        <span className="pill">{athlete.primarySport.toLowerCase()}</span>
+        <span className="pill">Seguimiento</span>
         <h1 className="mt-4 text-4xl font-black tracking-[-0.04em] md:text-5xl">{athlete.displayName}</h1>
-        <p className="mt-3 max-w-3xl text-[color:var(--muted)]">{athlete.objective}</p>
+        <p className="mt-3 max-w-3xl text-[color:var(--muted)]">
+          Próxima sesión y análisis del atleta. Objetivos y perfil viven en su bloque, no duplicados en portada.
+        </p>
       </section>
 
       <section className="mobile-stack">
         <div className="grid gap-5">
+          <section className="panel p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-2xl font-black">Próxima sesión</h2>
+              <a className="btn" href="/today">Ver formato atleta</a>
+            </div>
+            {nextWorkout ? (
+              <article className="mt-4 rounded-3xl border border-[color:var(--line)] bg-white/70 p-5">
+                <span className="pill">{nextWorkout.status.toLowerCase()}</span>
+                <h3 className="mt-3 text-3xl font-black">{nextWorkout.title}</h3>
+                <p className="mt-2 text-[color:var(--muted)]">
+                  {nextWorkout.date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })} · {nextWorkout.sport.toLowerCase()} · {nextWorkout.plannedMinutes} min · {nextWorkout.intensity}
+                </p>
+              </article>
+            ) : <p className="mt-4 text-[color:var(--muted)]">Sin sesiones cargadas.</p>}
+          </section>
+
           <section className="panel p-5">
             <h2 className="text-2xl font-black">Entrenos recientes/próximos</h2>
             <div className="mt-4 grid gap-3">
@@ -86,8 +107,10 @@ export default async function AthleteDetailPage({ params }: AthleteDetailPagePro
 
         <aside className="grid gap-5">
           <section className="panel p-5">
-            <h2 className="text-2xl font-black">Stats rápidas</h2>
+            <h2 className="text-2xl font-black">Objetivos y perfil</h2>
             <div className="mt-4 grid gap-3 text-sm">
+              <Info label="Objetivo" value={athlete.objective} />
+              <Info label="Deporte" value={athlete.primarySport.toLowerCase()} />
               <Info label="Horas/semana" value={`${athlete.weeklyHours} h`} />
               <Info label="Peso" value={athlete.weightKg ? `${athlete.weightKg} kg` : '—'} />
               <Info label="FC reposo" value={athlete.restingHr ? `${athlete.restingHr} ppm` : '—'} />
@@ -101,5 +124,5 @@ export default async function AthleteDetailPage({ params }: AthleteDetailPagePro
 }
 
 function Info({ label, value }: { label: string; value: string }) {
-  return <div className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3"><span className="text-[color:var(--muted)]">{label}</span><b>{value}</b></div>;
+  return <div className="grid gap-1 rounded-2xl bg-white/70 px-4 py-3"><span className="text-[color:var(--muted)]">{label}</span><b>{value}</b></div>;
 }

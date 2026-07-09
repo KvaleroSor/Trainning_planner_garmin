@@ -1,3 +1,4 @@
+import { AppHeader } from '@/components/app-header';
 import { prisma } from '@/lib/prisma';
 import { buildCoachRoster } from '@/lib/domain';
 
@@ -70,13 +71,7 @@ export default async function CoachPage() {
 
   return (
     <main className="shell py-6 md:py-10">
-      <nav className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3 font-black">
-          <span className="grid size-11 place-items-center rounded-2xl bg-white shadow-sm">TP</span>
-          <span>Training Planner</span>
-        </div>
-        <span className="pill">Mister verificado</span>
-      </nav>
+      <AppHeader eyebrow="Mister" />
 
       <section className="panel mb-5 p-5 md:p-7">
         <span className="pill">Roster de atletas</span>
