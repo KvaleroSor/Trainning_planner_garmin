@@ -5,6 +5,8 @@ import {
   buildCoachRoster,
   analyzePlanVsActual,
   findPersonalRecords,
+  getMonthWindow,
+  parseCalendarMonth,
   type CoachAccessInput,
   type WorkoutSummaryInput,
   type RosterAthleteInput,
@@ -163,5 +165,28 @@ describe('personal records', () => {
       { label: 'Mejor potencia media', value: '230 W', sport: 'CYCLING' },
       { label: 'Pico potencia', value: '540 W', sport: 'CYCLING' },
     ]);
+  });
+});
+
+describe('calendar month helpers', () => {
+  it('parses valid YYYY-MM months and exposes real previous/next month links', () => {
+    const window = getMonthWindow(parseCalendarMonth('2026-08'));
+
+    expect(window.label).toBe('agosto 2026');
+    expect(window.startIso).toBe('2026-08-01');
+    expect(window.endIso).toBe('2026-08-31');
+    expect(window.days).toHaveLength(31);
+    expect(window.days[0].iso).toBe('2026-08-01');
+    expect(window.days[0].weekday).toBe('sáb');
+    expect(window.days[30].iso).toBe('2026-08-31');
+    expect(window.previousMonth).toBe('2026-07');
+    expect(window.nextMonth).toBe('2026-09');
+  });
+
+  it('falls back to current month for invalid query strings', () => {
+    const current = new Date('2027-02-10T12:00:00.000Z');
+
+    expect(parseCalendarMonth('julio', current)).toBe('2027-02');
+    expect(parseCalendarMonth(undefined, current)).toBe('2027-02');
   });
 });

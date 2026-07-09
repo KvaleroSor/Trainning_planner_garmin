@@ -46,11 +46,15 @@ Rutas iniciales:
 
 La demo estática pública sigue en `main`/GitHub Pages mientras la base real se trabaja en esta rama para no romper feedback móvil.
 
-Feedback de entrenador recogido en:
+Feedback y arquitectura recogidos en:
 
 ```text
+ARCHITECTURE.md
 docs/coach-feedback-2026-07.md
+docs/product-audit-claude-2026-07.md
 ```
+
+Importante: la demo estática de GitHub Pages es solo prototipo/review. No debe usarse con datos reales de atletas hasta tener auth server-side, permisos coach-atleta y persistencia backend.
 
 
 ## Nombre provisional

@@ -222,3 +222,61 @@ export function findPersonalRecords(activities: PersonalRecordActivityInput[]): 
 
   return records;
 }
+
+export type CalendarMonthDay = {
+  iso: string;
+  day: number;
+  weekday: string;
+};
+
+export type CalendarMonthWindow = {
+  month: string;
+  label: string;
+  startIso: string;
+  endIso: string;
+  previousMonth: string;
+  nextMonth: string;
+  days: CalendarMonthDay[];
+};
+
+function pad2(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+function toMonthKey(date: Date): string {
+  return `${date.getUTCFullYear()}-${pad2(date.getUTCMonth() + 1)}`;
+}
+
+export function parseCalendarMonth(value?: string, fallback = new Date()): string {
+  if (value && /^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return value;
+  return toMonthKey(new Date(Date.UTC(fallback.getUTCFullYear(), fallback.getUTCMonth(), 1)));
+}
+
+export function getMonthWindow(month: string): CalendarMonthWindow {
+  const [year, monthNumber] = month.split('-').map(Number);
+  const monthIndex = monthNumber - 1;
+  const start = new Date(Date.UTC(year, monthIndex, 1));
+  const end = new Date(Date.UTC(year, monthIndex + 1, 0));
+  const previous = new Date(Date.UTC(year, monthIndex - 1, 1));
+  const next = new Date(Date.UTC(year, monthIndex + 1, 1));
+
+  const days: CalendarMonthDay[] = [];
+  for (let day = 1; day <= end.getUTCDate(); day += 1) {
+    const date = new Date(Date.UTC(year, monthIndex, day));
+    days.push({
+      iso: `${year}-${pad2(monthNumber)}-${pad2(day)}`,
+      day,
+      weekday: date.toLocaleDateString('es-ES', { weekday: 'short', timeZone: 'UTC' }).replace('.', ''),
+    });
+  }
+
+  return {
+    month,
+    label: start.toLocaleDateString('es-ES', { month: 'long', year: 'numeric', timeZone: 'UTC' }).replace(' de ', ' '),
+    startIso: `${year}-${pad2(monthNumber)}-01`,
+    endIso: `${year}-${pad2(monthNumber)}-${pad2(end.getUTCDate())}`,
+    previousMonth: toMonthKey(previous),
+    nextMonth: toMonthKey(next),
+    days,
+  };
+}
